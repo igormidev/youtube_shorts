@@ -1,7 +1,9 @@
 name: youtube_shorts
-description: "A new Flutter package project."
-version: 0.1.0
-# homepage:
+description: "A youtube shorts displayer."
+version: 0.2.0
+homepage: https://pub.dev/packages/youtube_shorts
+repository: https://github.com/igormidev/youtube_shorts
+issue_tracker: https://github.com/igormidev/youtube_shorts/issues
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

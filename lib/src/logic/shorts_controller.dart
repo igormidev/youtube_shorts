@@ -11,20 +11,39 @@ typedef DisposeFunction = FutureOr<void> Function();
 
 class ShortsController extends ValueNotifier<ShortsState> {
   final VideosSourceController _youtubeVideoInfoService;
-  final VideoControllerConfiguration defaultVideoControllerConfiguration;
-  final bool startWithAutoplay;
+  final VideoControllerConfiguration _defaultVideoControllerConfiguration;
+  final bool _startWithAutoplay;
 
+  /// * [youtubeVideoInfoService] controller can be one of two constructors:
+  ///     1. [VideosSourceController.fromUrlList]
+  ///     2. [VideosSourceController.fromYoutubeChannel]
+  ///
+  /// * If [_startWithAutoplay] is true, the current focused video
+  /// will start playing right after is dependencies are ready.
+  /// Will start paused otherwise.
+  ///
+  /// * [VideoControllerConfiguration] is the configuration of [VideoController]
+  /// of [media_kit](https://pub.dev/packages/media_kit).
+  ///
+  /// * [initialIndex] can only be setted if [youtubeVideoInfoService]
+  /// is [VideosSourceController.fromUrlList] constructor.
+  /// Other constructors `do not` suport this option.
   ShortsController({
     required VideosSourceController youtubeVideoInfoService,
-    this.startWithAutoplay = true,
-    this.defaultVideoControllerConfiguration =
+    bool startWithAutoplay = true,
+    VideoControllerConfiguration defaultVideoControllerConfiguration =
         const VideoControllerConfiguration(),
-  })  : _youtubeVideoInfoService = youtubeVideoInfoService,
+    int initialIndex = 0,
+  })  : _startWithAutoplay = startWithAutoplay,
+        _defaultVideoControllerConfiguration =
+            defaultVideoControllerConfiguration,
+        _youtubeVideoInfoService = youtubeVideoInfoService,
+        _currentIndex = initialIndex,
         super(const ShortsStateLoading()) {
     notifyCurrentIndex(0);
   }
 
-  int _currentIndex = 0;
+  int _currentIndex;
 
   /// Will notify the controller that the current index has changed.
   /// This will trigger the preload of the previus 3 and next 3 videos.
@@ -101,20 +120,20 @@ class ShortsController extends ValueNotifier<ShortsState> {
         final player = Player();
         final hostedVideoUrl = video.hostedVideoUrl;
 
-        final willPlay = startWithAutoplay && item.key == _currentIndex;
+        final willPlay = _startWithAutoplay && item.key == _currentIndex;
 
         await player.open(Media(hostedVideoUrl), play: willPlay);
         await player.setVolume(100);
         currentState.videos[item.key]?.complete((
           videoController: VideoController(
             player,
-            configuration: defaultVideoControllerConfiguration,
+            configuration: _defaultVideoControllerConfiguration,
           ),
           videoData: video,
         ));
         print('✅ dependChanged: ${item.key} added');
       } else {
-        final willPlay = startWithAutoplay && item.key == _currentIndex;
+        final willPlay = _startWithAutoplay && item.key == _currentIndex;
         if (willPlay) {
           _playVideoAtIndex(item.key);
         }

@@ -92,7 +92,6 @@ class _ShortsPageState extends State<ShortsPage> {
       builder: (context, shortsState, child) {
         if (shortsState is ShortsStateWithData) {
           final ShortsStateWithData currentValue = shortsState;
-          print('maxLenght: ${currentValue.maxLenght}');
           return PageView.builder(
             scrollDirection: Axis.vertical,
             itemCount: currentValue.maxLenght,
