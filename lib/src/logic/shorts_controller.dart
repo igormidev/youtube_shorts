@@ -34,24 +34,30 @@ class ShortsController extends ValueNotifier<ShortsState> {
     VideoControllerConfiguration defaultVideoControllerConfiguration =
         const VideoControllerConfiguration(),
     int initialIndex = 0,
-  })  : _startWithAutoplay = startWithAutoplay,
+  })  : assert(
+          _controllerIsChannelAndIndexZero(
+                  youtubeVideoInfoService, initialIndex) ||
+              _controllerIsUrl(youtubeVideoInfoService),
+          'The initialIndex is only suported if youtubeVideoInfoService is VideosSourceController.fromUrlList constructor.',
+        ),
+        _startWithAutoplay = startWithAutoplay,
         _defaultVideoControllerConfiguration =
             defaultVideoControllerConfiguration,
         _youtubeVideoInfoService = youtubeVideoInfoService,
-        _currentIndex = initialIndex,
+        currentIndex = initialIndex,
         super(const ShortsStateLoading()) {
-    notifyCurrentIndex(0);
+    notifyCurrentIndex(currentIndex);
   }
 
-  int _currentIndex;
+  int currentIndex;
 
   /// Will notify the controller that the current index has changed.
   /// This will trigger the preload of the previus 3 and next 3 videos.
   void notifyCurrentIndex(int index) {
     // Let's pause the last index
-    unawaited(_pauseVideoAtIndex(_currentIndex));
+    unawaited(_pauseVideoAtIndex(currentIndex));
 
-    _currentIndex = index;
+    currentIndex = index;
     _preloadVideos();
   }
 
@@ -77,21 +83,21 @@ class ShortsController extends ValueNotifier<ShortsState> {
     final videos = currentState?.videos;
 
     final previus3Ids = [
-      _getMapEntryFromIndex(videos, _currentIndex - 3),
-      _getMapEntryFromIndex(videos, _currentIndex - 2),
-      _getMapEntryFromIndex(videos, _currentIndex - 1),
+      _getMapEntryFromIndex(videos, currentIndex - 3),
+      _getMapEntryFromIndex(videos, currentIndex - 2),
+      _getMapEntryFromIndex(videos, currentIndex - 1),
     ];
 
     final next3Ids = [
-      _getMapEntryFromIndex(videos, _currentIndex + 1),
-      _getMapEntryFromIndex(videos, _currentIndex + 2),
-      _getMapEntryFromIndex(videos, _currentIndex + 3),
+      _getMapEntryFromIndex(videos, currentIndex + 1),
+      _getMapEntryFromIndex(videos, currentIndex + 2),
+      _getMapEntryFromIndex(videos, currentIndex + 3),
     ];
 
     // Add in state the 3 previus videos and the 3 next videos
     final focusedItems = [
       ...previus3Ids,
-      _getMapEntryFromIndex(videos, _currentIndex), // Current index
+      _getMapEntryFromIndex(videos, currentIndex), // Current index
       ...next3Ids,
     ];
 
@@ -120,7 +126,7 @@ class ShortsController extends ValueNotifier<ShortsState> {
         final player = Player();
         final hostedVideoUrl = video.hostedVideoUrl;
 
-        final willPlay = _startWithAutoplay && item.key == _currentIndex;
+        final willPlay = _startWithAutoplay && item.key == currentIndex;
 
         await player.open(Media(hostedVideoUrl), play: willPlay);
         await player.setVolume(100);
@@ -133,7 +139,7 @@ class ShortsController extends ValueNotifier<ShortsState> {
         ));
         print('✅ dependChanged: ${item.key} added');
       } else {
-        final willPlay = _startWithAutoplay && item.key == _currentIndex;
+        final willPlay = _startWithAutoplay && item.key == currentIndex;
         if (willPlay) {
           _playVideoAtIndex(item.key);
         }
@@ -214,4 +220,14 @@ class ShortsController extends ValueNotifier<ShortsState> {
       } finally {}
     });
   }
+}
+
+bool _controllerIsChannelAndIndexZero(
+    VideosSourceController youtubeVideoInfoService, int initialIndex) {
+  return youtubeVideoInfoService is VideosSourceControllerYoutubeChannel &&
+      initialIndex == 0;
+}
+
+bool _controllerIsUrl(VideosSourceController youtubeVideoInfoService) {
+  return youtubeVideoInfoService is VideosSourceControllerFromUrlList;
 }

@@ -8,6 +8,16 @@ import 'package:youtube_shorts/src/utils/extensions.dart';
 
 typedef VideoDataBuilder = Widget Function(
   int index,
+  PageController pageController,
+  VideoController videoController,
+  Video videoData,
+  String hostedVideoUrl,
+  Widget Function() child,
+);
+
+typedef VideoInfoBuilder = Widget Function(
+  int index,
+  PageController pageController,
   VideoController videoController,
   Video videoData,
   String hostedVideoUrl,
@@ -39,7 +49,7 @@ class ShortsPage extends StatefulWidget {
   ///
   /// ℹ️ Tip: If you wan't to use the full space of the [Stack] to position your widget,
   /// use SizedBox.expand() as the first widget you will return.
-  final VideoDataBuilder? overlayWidgetBuilder;
+  final VideoInfoBuilder? overlayWidgetBuilder;
 
   /// The widget that will be displayed while the [ShortsController]
   /// initial dependencies are loading.
@@ -70,6 +80,14 @@ class ShortsPage extends StatefulWidget {
   /// ```
   final Widget? errrorWidget;
 
+  /// If true, will show default video buttons
+  /// when user tap's on the screen.
+  /// Such as:
+  /// - pause/play button
+  /// - bar with video duration and current time
+  /// - fullscreen button
+  final bool willHaveDefaultShortsControllers;
+
   /// The widget that will display the video.
   const ShortsPage({
     super.key,
@@ -78,6 +96,7 @@ class ShortsPage extends StatefulWidget {
     this.overlayWidgetBuilder,
     this.loadingWidget,
     this.errrorWidget,
+    this.willHaveDefaultShortsControllers = true,
   });
 
   @override
@@ -85,6 +104,22 @@ class ShortsPage extends StatefulWidget {
 }
 
 class _ShortsPageState extends State<ShortsPage> {
+  late final PageController pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    pageController = PageController(
+      initialPage: widget.controller.currentIndex, // The initial index
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    pageController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -94,10 +129,8 @@ class _ShortsPageState extends State<ShortsPage> {
           final ShortsStateWithData currentValue = shortsState;
           return PageView.builder(
             scrollDirection: Axis.vertical,
+            controller: pageController,
             itemCount: currentValue.maxLenght,
-            // physics: isFeedLoading != FeedLoading.loaded
-            //     ? const NeverScrollableScrollPhysics()
-            //     : null,
             itemBuilder: (context, index) {
               final videoCompletter = widget.controller.getVideoInIndex(index);
               return FutureBuilder(
@@ -113,22 +146,35 @@ class _ShortsPageState extends State<ShortsPage> {
                       children: [
                         SizedBox.expand(
                           child: Builder(builder: (context) {
-                            if (widget.videoBuilder != null) {
-                              return widget.videoBuilder!(
-                                index,
-                                data.videoController,
-                                data.videoData.videoData,
-                                data.videoData.hostedVideoUrl,
+                            Widget childBuilder() {
+                              final willIgnore =
+                                  !widget.willHaveDefaultShortsControllers;
+
+                              return IgnorePointer(
+                                ignoring: willIgnore,
+                                child: mediaKit.Video(
+                                  controller: data.videoController,
+                                ),
                               );
                             }
 
-                            return mediaKit.Video(
-                              controller: data.videoController,
-                            );
+                            if (widget.videoBuilder != null) {
+                              return widget.videoBuilder!(
+                                index,
+                                pageController,
+                                data.videoController,
+                                data.videoData.videoData,
+                                data.videoData.hostedVideoUrl,
+                                childBuilder,
+                              );
+                            }
+
+                            return childBuilder();
                           }),
                         ),
                         widget.overlayWidgetBuilder?.call(
                           index,
+                          pageController,
                           data.videoController,
                           data.videoData.videoData,
                           data.videoData.hostedVideoUrl,

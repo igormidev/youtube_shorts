@@ -262,6 +262,7 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
       controller: controller,
       overlayWidgetBuilder: (
         int index,
+        PageController pageController,
         VideoController videoController,
         videoData,
         String hostedVideoUrl,

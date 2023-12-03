@@ -1,6 +1,6 @@
 name: youtube_shorts
 description: "A youtube shorts displayer."
-version: 0.2.0
+version: 0.4.1
 homepage: https://pub.dev/packages/youtube_shorts
 repository: https://github.com/igormidev/youtube_shorts
 issue_tracker: https://github.com/igormidev/youtube_shorts/issues
