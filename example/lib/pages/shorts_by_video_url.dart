@@ -1,82 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized();
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      builder: (context, child) {
-        return ColoredBox(
-          color: Colors.deepPurple[200]!,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: SizedBox.expand(child: child),
-          ),
-        );
-      },
-      home: const SelectionPage(),
-    );
-  }
-}
-
-class SelectionPage extends StatelessWidget {
-  const SelectionPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Choose your youtube video source'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return const ShortsByVideoUrl();
-                    },
-                  ),
-                );
-              },
-              child: const Text('By list of video urls'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return const ShortsByChannelName();
-                    },
-                  ),
-                );
-              },
-              child: const Text('By youtube channel name'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class ShortsByVideoUrl extends StatefulWidget {
   const ShortsByVideoUrl({super.key});
@@ -250,6 +173,7 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
   void initState() {
     super.initState();
     controller = ShortsController(
+      initialIndex: 5,
       youtubeVideoInfoService: VideosSourceController.fromUrlList(
         videoIds: widget.ids,
       ),
@@ -264,140 +188,19 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
         int index,
         PageController pageController,
         VideoController videoController,
-        videoData,
+        Video videoData,
         String hostedVideoUrl,
       ) {
-        return Center(
-          child: CircleAvatar(
-            child: Text('$index'),
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 100, left: 16),
+            child: CircleAvatar(
+              child: Text('$index'),
+            ),
           ),
         );
       },
-    );
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-}
-
-class ShortsByChannelName extends StatefulWidget {
-  const ShortsByChannelName({super.key});
-
-  @override
-  State<ShortsByChannelName> createState() => _ShortsByChannelNameState();
-}
-
-class _ShortsByChannelNameState extends State<ShortsByChannelName> {
-  final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
-  final TextEditingController _textEditingController = TextEditingController(
-    text: 'fcbarcelona',
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('By channel name'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _textEditingController.clear();
-            },
-            icon: const Icon(Icons.delete),
-            tooltip: 'Clean field',
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 8),
-            Text(
-              'Type the urls you want\nto play in stories',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            Form(
-              key: _formkey,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  controller: _textEditingController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-
-                    return null;
-                  },
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Type the youtube SHORTS link',
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (_textEditingController.text.isNotEmpty) {
-                  final isValid = _formkey.currentState?.validate() == true;
-                  if (isValid == false) return;
-                }
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return ShortsByChannelNameDisplay(
-                        channelName: _textEditingController.text,
-                      );
-                    },
-                  ),
-                );
-              },
-              child: const Text('Start shorts view'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ShortsByChannelNameDisplay extends StatefulWidget {
-  final String channelName;
-  const ShortsByChannelNameDisplay({super.key, required this.channelName});
-
-  @override
-  State<ShortsByChannelNameDisplay> createState() =>
-      _ShortsByChannelNameDisplayState();
-}
-
-class _ShortsByChannelNameDisplayState
-    extends State<ShortsByChannelNameDisplay> {
-  late final ShortsController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = ShortsController(
-      youtubeVideoInfoService: VideosSourceController.fromYoutubeChannel(
-        channelName: widget.channelName,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ShortsPage(
-      controller: controller,
     );
   }
 

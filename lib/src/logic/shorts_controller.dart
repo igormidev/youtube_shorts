@@ -34,7 +34,8 @@ class ShortsController extends ValueNotifier<ShortsState> {
     VideoControllerConfiguration defaultVideoControllerConfiguration =
         const VideoControllerConfiguration(),
     int initialIndex = 0,
-  })  : assert(
+  })  : currentIndex = initialIndex,
+        assert(
           _controllerIsChannelAndIndexZero(
                   youtubeVideoInfoService, initialIndex) ||
               _controllerIsUrl(youtubeVideoInfoService),
@@ -44,20 +45,20 @@ class ShortsController extends ValueNotifier<ShortsState> {
         _defaultVideoControllerConfiguration =
             defaultVideoControllerConfiguration,
         _youtubeVideoInfoService = youtubeVideoInfoService,
-        currentIndex = initialIndex,
         super(const ShortsStateLoading()) {
-    notifyCurrentIndex(currentIndex);
+    notifyCurrentIndex(initialIndex);
   }
 
   int currentIndex;
 
   /// Will notify the controller that the current index has changed.
   /// This will trigger the preload of the previus 3 and next 3 videos.
-  void notifyCurrentIndex(int index) {
-    // Let's pause the last index
-    unawaited(_pauseVideoAtIndex(currentIndex));
+  void notifyCurrentIndex(int newIndex) {
+    currentIndex = newIndex;
 
-    currentIndex = index;
+    // Let's pause the last index
+    unawaited(_pauseVideoAtIndex(newIndex));
+
     _preloadVideos();
   }
 
