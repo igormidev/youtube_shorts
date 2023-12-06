@@ -1,5 +1,5 @@
 name: youtube_shorts
-description: "A youtube shorts displayer."
+description: A vertical youtube shorts player. Show youtube shorts videos by a list of urls or the target channel name.
 version: 0.4.2
 homepage: https://pub.dev/packages/youtube_shorts
 repository: https://github.com/igormidev/youtube_shorts
@@ -17,6 +17,7 @@ dependencies:
   media_kit_video: ^1.2.4
   media_kit_libs_video: ^1.0.4
   dart_debouncer: ^1.0.0
+  enchanted_collection:
 
 dev_dependencies:
   flutter_test:

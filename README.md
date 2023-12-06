@@ -5,8 +5,7 @@
 </p>
 
 ### ▶️ youtube_shorts: A package for displaying youtube shorts.
-
-You can choose you shorts by passing a list of shorts url's, or by passing a channel name. Under the hood the package is using [youtube_explode_dart](https://pub.dev/packages/youtube_explode_dart) to get youtube video info and [media_kit](https://pub.dev/packages/media_kit) for as the player for videos. 
+A vertical youtube shorts player. You can choose what shorts will be displayed by passing a list of shorts url's or by passing a channel name. Under the hood the package is using [youtube_explode_dart](https://pub.dev/packages/youtube_explode_dart) to get youtube video info and [media_kit](https://pub.dev/packages/media_kit) as the player for videos. 
 
 <br>
 

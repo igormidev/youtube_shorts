@@ -26,9 +26,13 @@ abstract class VideosSourceController {
   VideosSourceController();
 
   factory VideosSourceController.fromUrlList({
+    int initialIndex = 0,
     required List<String> videoIds,
   }) {
-    return VideosSourceControllerFromUrlList(videoIds: videoIds);
+    return VideosSourceControllerFromUrlList(
+      initialIndex: initialIndex,
+      videoIds: videoIds,
+    );
   }
 
   factory VideosSourceController.fromYoutubeChannel({
@@ -70,7 +74,10 @@ class VideosSourceControllerFromUrlList extends VideosSourceController {
 
   final Map<int, String> _videoIds;
 
+  final int initialIndex;
+
   VideosSourceControllerFromUrlList({
+    required this.initialIndex,
     required List<String> videoIds,
   }) : _videoIds = Map.fromEntries(videoIds
             .mapper((value, isFirst, isLast, index) => MapEntry(index, value)));

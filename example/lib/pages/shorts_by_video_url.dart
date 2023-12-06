@@ -19,25 +19,25 @@ class _ShortsByVideoUrlState extends State<ShortsByVideoUrl> {
   }
 
   List<String> links = [
-    'https://www.youtube.com/shorts/PiWJWfzVwjU',
-    'https://www.youtube.com/shorts/AeZ3dmC676c',
-    'https://www.youtube.com/shorts/L1lg_lxUxfw',
-    'https://www.youtube.com/shorts/OWPsdhLHK7c',
-    'https://www.youtube.com/shorts/GoQhFyoZxRM',
-    'https://www.youtube.com/shorts/pzpp3PkVI-s',
-    'https://www.youtube.com/shorts/Z9yyWrbonRs',
-    'https://www.youtube.com/shorts/LPm0LUBxnRQ',
-    'https://www.youtube.com/shorts/sG0lMuv88yg',
-    'https://www.youtube.com/shorts/HEwvgMxsLcI',
-    'https://www.youtube.com/shorts/8I1Gq1xW8L4',
-    'https://www.youtube.com/shorts/tL7D5bivyH4',
-    'https://www.youtube.com/shorts/7TVj_KqJ0wY',
-    'https://www.youtube.com/shorts/GYqF_LXFlyg',
-    'https://www.youtube.com/shorts/Il5rxWOw4GI',
-    'https://www.youtube.com/shorts/a3XT1p7Uczk',
-    'https://www.youtube.com/shorts/1S-c0yLCsNo',
-    'https://www.youtube.com/shorts/S23UPbRai-w',
-    'https://www.youtube.com/shorts/ZCDU4O1jnTo',
+    'https://www.youtube.com/shorts/PiWJWfzVwjU', // 0
+    'https://www.youtube.com/shorts/AeZ3dmC676c', // 1
+    'https://www.youtube.com/shorts/L1lg_lxUxfw', // 2
+    'https://www.youtube.com/shorts/OWPsdhLHK7c', // 3
+    'https://www.youtube.com/shorts/GoQhFyoZxRM', // 4
+    'https://www.youtube.com/shorts/pzpp3PkVI-s', // 5
+    'https://www.youtube.com/shorts/Z9yyWrbonRs', // 6
+    'https://www.youtube.com/shorts/LPm0LUBxnRQ', // 7
+    'https://www.youtube.com/shorts/sG0lMuv88yg', // 8
+    'https://www.youtube.com/shorts/HEwvgMxsLcI', // 9
+    'https://www.youtube.com/shorts/8I1Gq1xW8L4', // 10
+    'https://www.youtube.com/shorts/tL7D5bivyH4', // 11
+    'https://www.youtube.com/shorts/7TVj_KqJ0wY', // 12
+    'https://www.youtube.com/shorts/GYqF_LXFlyg', // 13
+    'https://www.youtube.com/shorts/Il5rxWOw4GI', // 14
+    'https://www.youtube.com/shorts/a3XT1p7Uczk', // 15
+    'https://www.youtube.com/shorts/1S-c0yLCsNo', // 16
+    'https://www.youtube.com/shorts/S23UPbRai-w', // 17
+    'https://www.youtube.com/shorts/ZCDU4O1jnTo', // 18
   ];
 
   @override
@@ -173,9 +173,9 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
   void initState() {
     super.initState();
     controller = ShortsController(
-      initialIndex: 5,
-      youtubeVideoInfoService: VideosSourceController.fromUrlList(
+      youtubeVideoSourceController: VideosSourceController.fromUrlList(
         videoIds: widget.ids,
+        initialIndex: 5,
       ),
     );
   }

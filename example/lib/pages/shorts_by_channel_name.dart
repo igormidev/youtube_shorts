@@ -106,7 +106,7 @@ class _ShortsByChannelNameDisplayState
   void initState() {
     super.initState();
     controller = ShortsController(
-      youtubeVideoInfoService: VideosSourceController.fromYoutubeChannel(
+      youtubeVideoSourceController: VideosSourceController.fromYoutubeChannel(
         channelName: widget.channelName,
       ),
     );

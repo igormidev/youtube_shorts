@@ -112,7 +112,6 @@ class _ShortsPageState extends State<ShortsPage> {
   @override
   void initState() {
     super.initState();
-    print('initial: ${widget.controller.currentIndex}');
     pageController = PageController(
       initialPage: widget.controller.currentIndex, // The initial index
     );
@@ -162,6 +161,7 @@ class _ShortsPageState extends State<ShortsPage> {
                               return IgnorePointer(
                                 ignoring: willIgnore,
                                 child: media_kit.Video(
+                                  fill: Colors.transparent,
                                   controller: data.videoController,
                                 ),
                               );

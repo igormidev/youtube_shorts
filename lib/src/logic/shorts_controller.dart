@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -13,68 +14,74 @@ class ShortsController extends ValueNotifier<ShortsState> {
   final VideosSourceController _youtubeVideoInfoService;
   final VideoControllerConfiguration _defaultVideoControllerConfiguration;
   final bool _startWithAutoplay;
+  final bool _videosWillBeInLoop;
 
-  /// * [youtubeVideoInfoService] controller can be one of two constructors:
+  /// * [youtubeVideoSourceController] controller can be one of two constructors:
   ///     1. [VideosSourceController.fromUrlList]
   ///     2. [VideosSourceController.fromYoutubeChannel]
   ///
-  /// * If [_startWithAutoplay] is true, the current focused video
+  /// * If [startWithAutoplay] is true, the current focused video
   /// will start playing right after is dependencies are ready.
   /// Will start paused otherwise.
   ///
+  /// * If [startWithAutoplay] is true, the videos will `repeat`
+  /// from start when finalized. Will pause after done otherwise.
+  ///
   /// * [VideoControllerConfiguration] is the configuration of [VideoController]
   /// of [media_kit](https://pub.dev/packages/media_kit).
-  ///
-  /// * [initialIndex] can only be setted if [youtubeVideoInfoService]
-  /// is [VideosSourceController.fromUrlList] constructor.
-  /// Other constructors `do not` suport this option.
   ShortsController({
-    required VideosSourceController youtubeVideoInfoService,
+    required VideosSourceController youtubeVideoSourceController,
     bool startWithAutoplay = true,
+    bool videosWillBeInLoop = true,
     VideoControllerConfiguration defaultVideoControllerConfiguration =
         const VideoControllerConfiguration(),
-    int initialIndex = 0,
-  })  : currentIndex = initialIndex,
-        assert(
-          _controllerIsChannelAndIndexZero(
-                  youtubeVideoInfoService, initialIndex) ||
-              _controllerIsUrl(youtubeVideoInfoService),
-          'The initialIndex is only suported if youtubeVideoInfoService is VideosSourceController.fromUrlList constructor.',
-        ),
-        _startWithAutoplay = startWithAutoplay,
+  })  : _startWithAutoplay = startWithAutoplay,
+        _videosWillBeInLoop = videosWillBeInLoop,
         _defaultVideoControllerConfiguration =
             defaultVideoControllerConfiguration,
-        _youtubeVideoInfoService = youtubeVideoInfoService,
+        _youtubeVideoInfoService = youtubeVideoSourceController,
         super(const ShortsStateLoading()) {
-    notifyCurrentIndex(initialIndex);
+    if (youtubeVideoSourceController is VideosSourceControllerFromUrlList) {
+      prevIndex = -1;
+      currentIndex = -1;
+      notifyCurrentIndex(youtubeVideoSourceController.initialIndex);
+    } else {
+      prevIndex = -1;
+      currentIndex = 0;
+      notifyCurrentIndex(0);
+    }
   }
 
-  int currentIndex;
+  late int prevIndex;
+  late int currentIndex;
 
   /// Will notify the controller that the current index has changed.
   /// This will trigger the preload of the previus 3 and next 3 videos.
   void notifyCurrentIndex(int newIndex) {
+    prevIndex = currentIndex;
     currentIndex = newIndex;
-
-    // Let's pause the last index
-    unawaited(_pauseVideoAtIndex(newIndex));
+    unawaited(_playCurrentVideoAndPausePreviousVideo());
 
     _preloadVideos();
   }
 
-  Future<void> _pauseVideoAtIndex(int index) async {
-    final lastVideo = getVideoInIndex(index);
-    if (lastVideo != null) {
-      final video = await lastVideo.future;
-      video.videoController.player.pause();
+  Future<void> _playCurrentVideoAndPausePreviousVideo() async {
+    if (prevIndex != -1) {
+      final previousVideo = getVideoInIndex(currentIndex);
+      if (previousVideo != null) {
+        // We will not wait this
+        previousVideo.future.then((video) {
+          video.videoController.player.pause();
+        });
+      }
     }
-  }
 
-  Future<void> _playVideoAtIndex(int index) async {
-    final lastVideo = getVideoInIndex(index);
-    if (lastVideo != null) {
-      final video = await lastVideo.future;
-      video.videoController.player.play();
+    if (_startWithAutoplay == false) return;
+
+    final currentVideo = getVideoInIndex(currentIndex);
+    if (currentVideo != null) {
+      final video = await currentVideo.future;
+      await video.videoController.player.play();
     }
   }
 
@@ -102,13 +109,42 @@ class ShortsController extends ValueNotifier<ShortsState> {
       ...next3Ids,
     ];
 
+    // We are fetching one video at a time. So in order to
+    // start fetching a video we need first to fisnish fetching
+    // the current one.
+    //
+    // So what videos should we fetch first? Let's define a fetch order.
+    //
+    // The normal order of indexes of the list is:
+    // [1, 2, 3, 4, 5, 6, 7]
+    // If the current index is, for example, 4, the list will be:
+    // We want to fetch first the fourth video because it is the
+    // current selected one so it is prioritary.
+    // Then, we will fetch the posterior videos because user tipically
+    // scrolls more down then up. So let's fetch them first.
+    // And only then, fetch the videos that are before the current index.
+    // Now, the new list is: [4, 5, 6, 7, 1, 2, 3]
+    final targetIndex = focusedItems.indexWhere((e) => e.key == currentIndex);
+    List<MapEntry<int, VideoDataCompleter?>>? ordoredList;
+    if (targetIndex != -1) {
+      final prevCurrentIndex = focusedItems.sublist(0, targetIndex);
+      final currentIndexAndPosItems = focusedItems.sublist(targetIndex);
+      ordoredList = [
+        ...currentIndexAndPosItems,
+        ...prevCurrentIndex,
+      ];
+    }
     // Load the videos that are not in state
-    for (final item in focusedItems) {
+    for (final item in ordoredList ?? focusedItems) {
       if (item.value == null) {
-        final VideoInfo? video =
-            await _youtubeVideoInfoService.getVideoByIndex(item.key);
+        print('🔁 toGetInfo: ${item.key} added');
+        final VideoInfo? video = await _youtubeVideoInfoService.getVideoByIndex(
+          item.key,
+        );
+
         print('${item.key} has item (not null): ${video == null ? '❌' : '✅'}');
         if (video == null) continue;
+
         if (currentState == null) {
           currentState = ShortsStateWithData(videos: {
             item.key: VideoDataCompleter(),
@@ -131,6 +167,9 @@ class ShortsController extends ValueNotifier<ShortsState> {
 
         await player.open(Media(hostedVideoUrl), play: willPlay);
         await player.setVolume(100);
+        await player.setPlaylistMode(
+            _videosWillBeInLoop ? PlaylistMode.loop : PlaylistMode.none);
+        print('🔁 ${currentState.videos[item.key]} completed');
         currentState.videos[item.key]?.complete((
           videoController: VideoController(
             player,
@@ -139,11 +178,6 @@ class ShortsController extends ValueNotifier<ShortsState> {
           videoData: video,
         ));
         print('✅ dependChanged: ${item.key} added');
-      } else {
-        final willPlay = _startWithAutoplay && item.key == currentIndex;
-        if (willPlay) {
-          _playVideoAtIndex(item.key);
-        }
       }
     }
 
