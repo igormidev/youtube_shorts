@@ -1,6 +1,9 @@
+## 0.4.5 - Alpha
+* Using multithread for perfomance improvement
+
 ## 0.4.4 - Alpha
 * Audio in android bug fix
-* Perfomance improvment
+* Perfomance improvement
 * More stable function execution - less bugs. `synchronized` package implemented.
 
 ## 0.4.3 - Alpha

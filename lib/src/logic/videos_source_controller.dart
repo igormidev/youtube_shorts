@@ -1,3 +1,4 @@
+import 'package:easy_isolate_mixin/easy_isolate_mixin.dart';
 import 'package:youtube_shorts/src/utils/extensions.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
@@ -68,7 +69,8 @@ abstract class VideosSourceController {
   }
 }
 
-class VideosSourceControllerFromUrlList extends VideosSourceController {
+class VideosSourceControllerFromUrlList extends VideosSourceController
+    with IsolateHelperMixin {
   @override
   final Map<int, VideoInfo> _videos = {};
 
@@ -84,18 +86,20 @@ class VideosSourceControllerFromUrlList extends VideosSourceController {
 
   @override
   Future<VideoInfo?> getVideoByIndex(int index) async {
-    final cacheVideo = _videos[index];
-    if (cacheVideo != null) return Future.value(cacheVideo);
+    return loadWithIsolate(() async {
+      final cacheVideo = _videos[index];
+      if (cacheVideo != null) return Future.value(cacheVideo);
 
-    final videoid = _videoIds[index];
-    if (videoid == null) return null;
+      final videoid = _videoIds[index];
+      if (videoid == null) return null;
 
-    final video = await _yt.videos.get(videoid);
-    final url = await getVideoUrlFromVideoModel(video);
-    final VideoInfo response = (videoData: video, hostedVideoUrl: url);
-    _videos[index] = response;
+      final video = await _yt.videos.get(videoid);
+      final url = await getVideoUrlFromVideoModel(video);
+      final VideoInfo response = (videoData: video, hostedVideoUrl: url);
+      _videos[index] = response;
 
-    return response;
+      return response;
+    });
   }
 }
 
@@ -115,6 +119,8 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
 
   @override
   Future<VideoInfo?> getVideoByIndex(int index) async {
+    // Perform your expensive work here
+    // Return the result
     final cacheVideo = _videos[index];
     if (cacheVideo != null) return Future.value(cacheVideo);
 
@@ -154,7 +160,6 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
     if (desiredVideo == null) {
       return null;
     }
-
     return Future.value(desiredVideo);
   }
 }

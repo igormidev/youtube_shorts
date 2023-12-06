@@ -105,14 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
-  enchanted_collection:
+  easy_isolate_mixin:
     dependency: transitive
     description:
-      name: enchanted_collection
-      sha256: "60522e8e436572d9b41a9bf16cc163e39891139994a2f8b8fc115b430c1ec87b"
+      name: easy_isolate_mixin
+      sha256: d87d73597d8196bff6abf5b55ce1340b708fb3143c664c1384af30cb847e6879
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.0.1"
   fake_async:
     dependency: transitive
     description:
@@ -587,7 +587,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.4.2"
+    version: "0.4.4"
 sdks:
   dart: ">=3.2.0 <4.0.0"
   flutter: ">=3.7.0"

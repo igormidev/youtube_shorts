@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_isolate_mixin/easy_isolate_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -75,27 +76,25 @@ class ShortsController extends ValueNotifier<ShortsState> {
   Future<void> _playCurrentVideoAndPausePreviousVideo({
     required int prevIndex,
     required int currentIndex,
-  }) {
-    return _lock.synchronized(() async {
-      if (prevIndex != -1) {
-        final previousVideo = getVideoInIndex(prevIndex);
-        if (previousVideo != null) {
-          // We will not wait this
-          previousVideo.future.then((video) {
-            video.videoController.player.pause();
-          });
-        }
+  }) async {
+    if (prevIndex != -1) {
+      final previousVideo = getVideoInIndex(prevIndex);
+      if (previousVideo != null) {
+        // We will not wait this
+        previousVideo.future.then((video) {
+          video.videoController.player.pause();
+        });
       }
+    }
 
-      if (_startWithAutoplay == false) return;
+    if (_startWithAutoplay == false) return;
 
-      final currentVideo = getVideoInIndex(currentIndex);
-      if (currentVideo != null) {
-        final video = await currentVideo.future;
-
-        await video.videoController.player.play();
-      }
-    });
+    final currentVideo = getVideoInIndex(currentIndex);
+    if (currentVideo != null) {
+      await currentVideo.future.then((video) {
+        unawaited(video.videoController.player.play());
+      });
+    }
   }
 
   /// Will load the previus 3 and next 3 videos.
