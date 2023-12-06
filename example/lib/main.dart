@@ -8,8 +8,6 @@ import 'package:media_kit/media_kit.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
-  final preList = testIndexes.sublist(0, 3);
-  final postList = testIndexes.sublist(3);
   runApp(const MyApp());
 }
 

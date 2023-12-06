@@ -1,3 +1,13 @@
+## 0.4.4 - Alpha
+* Audio in android bug fix
+* Perfomance improvment
+* More stable function execution - less bugs. `synchronized` package implemented.
+
+## 0.4.3 - Alpha
+* All bugs fixed with initial index
+* Giant perfomance improvement
+* Initial index putted in `VideosSourceController.fromUrlList`
+
 ## 0.4.2 - Alpha
 * README.md update
 

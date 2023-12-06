@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
@@ -107,7 +105,6 @@ class ShortsPage extends StatefulWidget {
 
 class _ShortsPageState extends State<ShortsPage> {
   late final PageController pageController;
-  final Completer<void> didLoadDependencies = Completer<void>();
 
   @override
   void initState() {
@@ -129,81 +126,128 @@ class _ShortsPageState extends State<ShortsPage> {
       valueListenable: widget.controller,
       builder: (context, shortsState, child) {
         if (shortsState is ShortsStateWithData) {
-          final ShortsStateWithData currentValue = shortsState;
-          final int maxLenght = currentValue.maxLenght;
-          return PageView.builder(
-            scrollDirection: Axis.vertical,
-            controller: pageController,
-            itemBuilder: (context, index) {
-              final isSelectedIndex = widget.controller.currentIndex == index;
-              final isIndexBellowMaxLenght = index >= maxLenght;
-              if (!isSelectedIndex && isIndexBellowMaxLenght) return null;
-
-              final videoCompletter = widget.controller.getVideoInIndex(index);
-
-              return FutureBuilder(
-                future: videoCompletter?.future,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    final data = snapshot.data;
-                    if (snapshot.hasError || data == null) {
-                      return widget.errrorWidget ?? const _DefaultError();
-                    }
-
-                    return Stack(
-                      children: [
-                        SizedBox.expand(
-                          child: Builder(builder: (context) {
-                            Widget childBuilder() {
-                              final willIgnore =
-                                  !widget.willHaveDefaultShortsControllers;
-
-                              return IgnorePointer(
-                                ignoring: willIgnore,
-                                child: media_kit.Video(
-                                  fill: Colors.transparent,
-                                  controller: data.videoController,
-                                ),
-                              );
-                            }
-
-                            if (widget.videoBuilder != null) {
-                              return widget.videoBuilder!(
-                                index,
-                                pageController,
-                                data.videoController,
-                                data.videoData.videoData,
-                                data.videoData.hostedVideoUrl,
-                                childBuilder,
-                              );
-                            }
-
-                            return childBuilder();
-                          }),
-                        ),
-                        widget.overlayWidgetBuilder?.call(
-                          index,
-                          pageController,
-                          data.videoController,
-                          data.videoData.videoData,
-                          data.videoData.hostedVideoUrl,
-                        ),
-                      ].removeNull,
-                    );
-                  }
-
-                  return widget.loadingWidget ?? const _DefaultLoading();
-                },
-              );
-            },
-            onPageChanged: (index) {
-              widget.controller.notifyCurrentIndex(index);
-            },
-          );
+          return child!;
         } else {
           return widget.loadingWidget ?? const _DefaultLoading();
         }
       },
+      child: PageView.builder(
+        scrollDirection: Axis.vertical,
+        controller: pageController,
+        itemBuilder: (context, index) {
+          final ShortsStateWithData currentValue =
+              widget.controller.value as ShortsStateWithData;
+
+          final isSelectedIndex = widget.controller.currentIndex == index;
+          final int maxLenght = currentValue.maxLenght;
+          final isIndexBellowMaxLenght = index >= maxLenght;
+          if (!isSelectedIndex && isIndexBellowMaxLenght) return null;
+
+          final videoCompletter = widget.controller.getVideoInIndex(index);
+
+          return FutureBuilder(
+            future: videoCompletter?.future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                final data = snapshot.data;
+                if (snapshot.hasError || data == null) {
+                  return widget.errrorWidget ?? const _DefaultError();
+                }
+
+                return _VideoPlayerDisplay(
+                  key: ValueKey(index),
+                  willHaveDefaultShortsControllers:
+                      widget.willHaveDefaultShortsControllers,
+                  index: index,
+                  pageController: pageController,
+                  data: data,
+                  videoBuilder: widget.videoBuilder,
+                  overlayWidgetBuilder: widget.overlayWidgetBuilder,
+                );
+              }
+
+              return widget.loadingWidget ?? const _DefaultLoading();
+            },
+          );
+        },
+        onPageChanged: (index) {
+          widget.controller.notifyCurrentIndex(index);
+        },
+      ),
+    );
+  }
+}
+
+class _VideoPlayerDisplay extends StatefulWidget {
+  final bool willHaveDefaultShortsControllers;
+  final int index;
+  final PageController pageController;
+  final VideoData data;
+  final VideoDataBuilder? videoBuilder;
+  final VideoInfoBuilder? overlayWidgetBuilder;
+  const _VideoPlayerDisplay({
+    super.key,
+    required this.willHaveDefaultShortsControllers,
+    required this.index,
+    required this.pageController,
+    required this.data,
+    this.videoBuilder,
+    this.overlayWidgetBuilder,
+  });
+
+  @override
+  State<_VideoPlayerDisplay> createState() => _VideoPlayerDisplayState();
+}
+
+class _VideoPlayerDisplayState extends State<_VideoPlayerDisplay>
+    with AutomaticKeepAliveClientMixin<_VideoPlayerDisplay> {
+  @override
+  bool get wantKeepAlive => true;
+
+  bool didBuildOneTime = false;
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    didBuildOneTime = true;
+    return Stack(
+      children: [
+        SizedBox.expand(
+          child: Builder(builder: (context) {
+            Widget childBuilder() {
+              final willIgnore = !widget.willHaveDefaultShortsControllers;
+
+              return IgnorePointer(
+                ignoring: willIgnore,
+                child: media_kit.Video(
+                  fill: Colors.transparent,
+                  controller: widget.data.videoController,
+                ),
+              );
+            }
+
+            if (widget.videoBuilder != null) {
+              return widget.videoBuilder!(
+                widget.index,
+                widget.pageController,
+                widget.data.videoController,
+                widget.data.videoData.videoData,
+                widget.data.videoData.hostedVideoUrl,
+                childBuilder,
+              );
+            }
+
+            return childBuilder();
+          }),
+        ),
+        widget.overlayWidgetBuilder?.call(
+          widget.index,
+          widget.pageController,
+          widget.data.videoController,
+          widget.data.videoData.videoData,
+          widget.data.videoData.hostedVideoUrl,
+        ),
+      ].removeNull,
     );
   }
 }

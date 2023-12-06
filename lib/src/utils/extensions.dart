@@ -17,13 +17,13 @@ extension ListUtils<T> on List<T> {
     }).toList();
   }
 
-  FutureOr<void> forEachMapper(ForEachMapper<T> toElement) {
-    asMap().entries.forEach((entry) {
+  FutureOr<void> forEachMapper(ForEachMapper<T> toElement) async {
+    asMap().entries.forEach((entry) async {
       final index = entry.key;
       final value = entry.value;
       final isLast = (index + 1) == length;
       final isFirst = index == 0;
-      toElement(value, isFirst, isLast, index);
+      await toElement(value, isFirst, isLast, index);
     });
   }
 }

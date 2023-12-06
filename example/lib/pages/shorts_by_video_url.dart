@@ -175,7 +175,6 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
     controller = ShortsController(
       youtubeVideoSourceController: VideosSourceController.fromUrlList(
         videoIds: widget.ids,
-        initialIndex: 5,
       ),
     );
   }

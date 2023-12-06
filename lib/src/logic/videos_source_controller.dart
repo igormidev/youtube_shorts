@@ -136,7 +136,6 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
       isLast,
       innerIndex,
     ) async {
-      print('innerIndex: $innerIndex');
       final video = value;
       final url = await getVideoUrlFromVideoModel(video);
       final VideoInfo response = (videoData: video, hostedVideoUrl: url);
