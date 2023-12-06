@@ -107,7 +107,7 @@ class ShortsController extends ValueNotifier<ShortsState> {
       if (item.value == null) {
         final VideoInfo? video =
             await _youtubeVideoInfoService.getVideoByIndex(item.key);
-        print('${item.key} is video null: ${video == null ? '❌' : '✅'}');
+        print('${item.key} has item (not null): ${video == null ? '❌' : '✅'}');
         if (video == null) continue;
         if (currentState == null) {
           currentState = ShortsStateWithData(videos: {

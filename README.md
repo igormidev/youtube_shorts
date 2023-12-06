@@ -1,24 +1,11 @@
-
-<style>
-.title {
-  font-size: 40px; 
-}
-</style>
-<style>
-.subtitle {
-  font-size: 20px; 
-}
-</style>
-
 <p float="left">
   <img src="https://freelogopng.com/images/all_img/1684952459youtube-shorts-logo-png.png" width="170"/>
-  <img style="vertical-align:middle;margin: 0 0 32px 0;" src="https://images.vexels.com/media/users/3/158039/isolated/preview/05331045aee2a8e5142775d30365b88e-handshake-silhouette-icon.png" width="80"/>
+  <img style="margin: 0 0 -10px 0;" src="https://images.vexels.com/media/users/3/158039/isolated/preview/05331045aee2a8e5142775d30365b88e-handshake-silhouette-icon.png" width="80"/>
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Dart_programming_language_logo.svg/1200px-Dart_programming_language_logo.svg.png" width="180" />
 </p>
 
-<div class="title">▶️ youtube_shorts</div>
-<div class="subtitle">A package for displaying youtube shorts.</div>
-<br>
+### ▶️ youtube_shorts: A package for displaying youtube shorts.
+
 You can choose you shorts by passing a list of shorts url's, or by passing a channel name. Under the hood the package is using [youtube_explode_dart](https://pub.dev/packages/youtube_explode_dart) to get youtube video info and [media_kit](https://pub.dev/packages/media_kit) for as the player for videos. 
 
 <br>
@@ -95,9 +82,9 @@ void initState() {
 }
 ```
 
-Now, we need too add the widget that shows the shorts and use the controller you just created.  
-
 ## Shorts page use (minimal example): 
+Now, we need too add the widget that shows the shorts and will use the controller we just created.
+
 ```dart
 @override
 Widget build(BuildContext context) {

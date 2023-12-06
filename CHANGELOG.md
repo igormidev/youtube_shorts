@@ -1,3 +1,6 @@
+## 0.4.2 - Alpha
+* README.md update
+
 ## 0.4.1 - Alpha
 * Widget child builder function added
 

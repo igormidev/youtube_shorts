@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
-import 'package:media_kit_video/media_kit_video.dart' as mediaKit show Video;
+import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:youtube_shorts/src/logic/shorts_controller.dart';
 import 'package:youtube_shorts/src/logic/shorts_state.dart';
@@ -105,10 +107,12 @@ class ShortsPage extends StatefulWidget {
 
 class _ShortsPageState extends State<ShortsPage> {
   late final PageController pageController;
+  final Completer<void> didLoadDependencies = Completer<void>();
 
   @override
   void initState() {
     super.initState();
+    print('initial: ${widget.controller.currentIndex}');
     pageController = PageController(
       initialPage: widget.controller.currentIndex, // The initial index
     );
@@ -127,12 +131,17 @@ class _ShortsPageState extends State<ShortsPage> {
       builder: (context, shortsState, child) {
         if (shortsState is ShortsStateWithData) {
           final ShortsStateWithData currentValue = shortsState;
+          final int maxLenght = currentValue.maxLenght;
           return PageView.builder(
             scrollDirection: Axis.vertical,
             controller: pageController,
-            itemCount: currentValue.maxLenght,
             itemBuilder: (context, index) {
+              final isSelectedIndex = widget.controller.currentIndex == index;
+              final isIndexBellowMaxLenght = index >= maxLenght;
+              if (!isSelectedIndex && isIndexBellowMaxLenght) return null;
+
               final videoCompletter = widget.controller.getVideoInIndex(index);
+
               return FutureBuilder(
                 future: videoCompletter?.future,
                 builder: (context, snapshot) {
@@ -152,7 +161,7 @@ class _ShortsPageState extends State<ShortsPage> {
 
                               return IgnorePointer(
                                 ignoring: willIgnore,
-                                child: mediaKit.Video(
+                                child: media_kit.Video(
                                   controller: data.videoController,
                                 ),
                               );
@@ -200,7 +209,7 @@ class _ShortsPageState extends State<ShortsPage> {
 }
 
 class _DefaultLoading extends StatelessWidget {
-  const _DefaultLoading({super.key});
+  const _DefaultLoading();
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +224,7 @@ class _DefaultLoading extends StatelessWidget {
 }
 
 class _DefaultError extends StatelessWidget {
-  const _DefaultError({super.key});
+  const _DefaultError();
 
   @override
   Widget build(BuildContext context) {
