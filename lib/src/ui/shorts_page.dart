@@ -11,7 +11,7 @@ typedef VideoDataBuilder = Widget Function(
   PageController pageController,
   VideoController videoController,
   Video videoData,
-  String hostedVideoUrl,
+  MuxedStreamInfo hostedVideoInfo,
   Widget child,
 );
 
@@ -20,7 +20,7 @@ typedef VideoInfoBuilder = Widget Function(
   PageController pageController,
   VideoController videoController,
   Video videoData,
-  String hostedVideoUrl,
+  MuxedStreamInfo hostedVideoInfo,
 );
 
 class ShortsPage extends StatefulWidget {
@@ -228,7 +228,7 @@ class _VideoPlayerDisplayState extends State<_VideoPlayerDisplay>
                   widget.pageController,
                   widget.data.videoController,
                   widget.data.videoData.videoData,
-                  widget.data.videoData.hostedVideoUrl,
+                  widget.data.videoData.hostedVideoInfo,
                   videoPlayer,
                 );
               }
@@ -242,7 +242,7 @@ class _VideoPlayerDisplayState extends State<_VideoPlayerDisplay>
           widget.pageController,
           widget.data.videoController,
           widget.data.videoData.videoData,
-          widget.data.videoData.hostedVideoUrl,
+          widget.data.videoData.hostedVideoInfo,
         ),
       ].removeNull,
     );

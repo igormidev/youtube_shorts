@@ -188,7 +188,7 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
         PageController pageController,
         VideoController videoController,
         Video videoData,
-        String hostedVideoUrl,
+        MuxedStreamInfo hostedVideoUrl,
       ) {
         return Align(
           alignment: Alignment.topLeft,

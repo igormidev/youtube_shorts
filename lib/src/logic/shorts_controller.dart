@@ -6,7 +6,7 @@ import 'package:youtube_shorts/src/logic/shorts_state.dart';
 import 'package:youtube_shorts/src/logic/videos_source_controller.dart';
 import 'package:synchronized/synchronized.dart';
 
-typedef VideoData = ({VideoController videoController, VideoInfo videoData});
+typedef VideoData = ({VideoController videoController, VideoStats videoData});
 typedef VideoDataCompleter = Completer<VideoData>;
 typedef DisposeFunction = FutureOr<void> Function();
 
@@ -151,7 +151,7 @@ class ShortsController extends ValueNotifier<ShortsState> {
         if (item.key.isNegative) continue;
 
         if (item.value == null) {
-          final VideoInfo? video =
+          final VideoStats? video =
               await _youtubeVideoInfoService.getVideoByIndex(
             item.key,
           );
@@ -174,7 +174,8 @@ class ShortsController extends ValueNotifier<ShortsState> {
           }
 
           final player = Player();
-          final hostedVideoUrl = video.hostedVideoUrl;
+          final hostedVideoUrl =
+              Media.normalizeURI(video.hostedVideoInfo.url.toString());
 
           final willPlay = _startWithAutoplay && item.key == currentIndex;
 
