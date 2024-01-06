@@ -19,6 +19,7 @@ dependencies:
   dart_debouncer: ^1.0.0
   synchronized: ^3.1.0
   easy_isolate_mixin: ^1.0.1
+  enchanted_collection: ^1.2.0
 
 dev_dependencies:
   flutter_test:

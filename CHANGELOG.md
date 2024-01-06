@@ -1,3 +1,7 @@
+## 1.0.0
+* Stable version (No more alpha)
+* Ended `VideosSourceController.fromYoutubeChannel()` implementation. Now without bugs.
+
 ## 0.4.5 - Alpha
 * Using multithread for perfomance improvement
 

@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.2 
   youtube_shorts:
     path: '../'
+  enchanted_collection: 
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,11 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:example/pages/shorts_by_channel_name.dart';
 import 'package:example/pages/shorts_by_video_url.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:youtube_shorts/youtube_shorts.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,8 +43,30 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class SelectionPage extends StatelessWidget {
+class SelectionPage extends StatefulWidget {
   const SelectionPage({super.key});
+
+  @override
+  State<SelectionPage> createState() => _SelectionPageState();
+}
+
+class _SelectionPageState extends State<SelectionPage> {
+  @override
+  void initState() {
+    super.initState();
+    testing();
+  }
+
+  testing() async {
+    // [1, 2, 3, 4].forEach((element) async {
+    //   await Future.delayed(const Duration(seconds: 1));
+    //   print(element);
+    // });
+    await [1, 2, 3, 4, 5].forEachMapper((element, _, __, ___) async {
+      await Future.delayed(const Duration(seconds: 1));
+      print(element);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

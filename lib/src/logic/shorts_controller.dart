@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:easy_isolate_mixin/easy_isolate_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;

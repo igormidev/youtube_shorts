@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:easy_isolate_mixin/easy_isolate_mixin.dart';
-import 'package:youtube_shorts/src/utils/extensions.dart';
+import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 typedef VideoInfo = ({Video videoData, String hostedVideoUrl});
@@ -122,21 +124,66 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
     // Perform your expensive work here
     // Return the result
     final cacheVideo = _videos[index];
-    if (cacheVideo != null) return Future.value(cacheVideo);
 
+    print('tracking 0: index - ($index)');
+    print('tracking 1: cacheVideo - (${cacheVideo != null})');
+
+    if (cacheVideo != null) {
+      print('tracking 1 - (returned)');
+      return Future.value(cacheVideo);
+    }
+
+    print(
+      'tracking 2: channelUploadsList - (${channelUploadsList?.channel.value})',
+    );
     if (channelUploadsList == null) {
       final channel = await _yt.channels.getByUsername(_channelName);
+      print('tracking 3.1.1: channel - (${channel.id})');
       channelUploadsList = await _yt.channels.getUploadsFromPage(
         channel.id,
         VideoSorting.newest,
       );
+      print(
+        'tracking 3.1.2: channelUploadsList - (${channelUploadsList?.channel.value})',
+      );
     } else {
       final newChannelUploadsList = await channelUploadsList?.nextPage();
+      print(
+        'tracking 2.2.1: newChannelUploadsList - (${newChannelUploadsList?.channel.value})',
+      );
       channelUploadsList = newChannelUploadsList;
     }
 
     VideoInfo? desiredVideo;
-    await channelUploadsList?.forEachMapper((
+    // final len = channelUploadsList?.length;
+    // int innerIndex = -1;
+    // for (final value in channelUploadsList ?? []) {
+    //   final isLast = value == len;
+    //   innerIndex += 1;
+
+    //   final video = value;
+    //   final url = await getVideoUrlFromVideoModel(video);
+
+    //   print('tracking 4.$innerIndex: url');
+    //   final VideoInfo response = (videoData: video, hostedVideoUrl: url);
+
+    //   final newCacheIndex = _lastIndexAdded + innerIndex;
+    //   _videos[newCacheIndex] = response;
+    //   print('tracking 5.$innerIndex: newCacheIndex - ($newCacheIndex)');
+
+    //   final isTargetVideo = innerIndex == index;
+    //   print('tracking 6.$innerIndex: isTargetVideo - ($isTargetVideo)');
+    //   if (isTargetVideo) {
+    //     desiredVideo = response;
+    //   }
+
+    //   print('tracking 7.$innerIndex: isLast - ($isLast)');
+    //   if (isLast) {
+    //     _lastIndexAdded = _lastIndexAdded += innerIndex;
+    //   }
+    // }
+    final list = channelUploadsList?.toList() ?? [];
+    await list.forEachMapper((
       value,
       isFirst,
       isLast,
@@ -144,22 +191,33 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
     ) async {
       final video = value;
       final url = await getVideoUrlFromVideoModel(video);
+
+      print('tracking 4.$innerIndex: url');
       final VideoInfo response = (videoData: video, hostedVideoUrl: url);
 
-      _videos[_lastIndexAdded + innerIndex] = response;
+      final newCacheIndex = _lastIndexAdded + innerIndex;
+      _videos[newCacheIndex] = response;
+      print('tracking 5.$innerIndex: newCacheIndex - ($newCacheIndex)');
 
-      if (innerIndex == index) {
+      final isTargetVideo = innerIndex == index;
+      print('tracking 6.$innerIndex: isTargetVideo - ($isTargetVideo)');
+      if (isTargetVideo) {
         desiredVideo = response;
       }
 
+      print('tracking 7.$innerIndex: isLast - ($isLast)');
       if (isLast) {
         _lastIndexAdded = _lastIndexAdded += innerIndex;
       }
     });
 
-    if (desiredVideo == null) {
+    final haveDesiredVideo = desiredVideo != null;
+    if (haveDesiredVideo == false) {
+      print('tracking 8 - (returned)');
       return null;
     }
+
+    print('tracking 8 - SUCCESS');
     return Future.value(desiredVideo);
   }
 }
