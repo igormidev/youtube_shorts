@@ -1,4 +1,11 @@
+## 1.1.0
+* Error State added to package with the error and stacktrace details
+* Added shortcut in controller to pause, play, mute and set volume. So now it's no more needed to call the current 
+* README.md update
+* Better code organization
+
 ## 1.0.0
+### ⚠️ BREAKING CHANGES!
 * Stable version (No more alpha)
 * Ended `VideosSourceController.fromYoutubeChannel()` implementation. Now without bugs.
 * `VideoInfo` renamed to `VideoStats`

@@ -1,6 +1,5 @@
 // ignore_for_file: depend_on_referenced_packages
 
-import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:example/pages/shorts_by_channel_name.dart';
 import 'package:example/pages/shorts_by_video_url.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +11,6 @@ void main() {
   MediaKit.ensureInitialized();
   runApp(const MyApp());
 }
-
-const int currentIndex = 5;
-// final List<int> testIndexes = [2, 3, 4, 5, 6, 7, 8];
-// final List<int> testIndexes = [1, 2, 3, 4, 5, 6, 7];
-final List<int> testIndexes = [6, 7, 8, 9, 10, 11, 12];
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -43,30 +37,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class SelectionPage extends StatefulWidget {
+class SelectionPage extends StatelessWidget {
   const SelectionPage({super.key});
-
-  @override
-  State<SelectionPage> createState() => _SelectionPageState();
-}
-
-class _SelectionPageState extends State<SelectionPage> {
-  @override
-  void initState() {
-    super.initState();
-    testing();
-  }
-
-  testing() async {
-    // [1, 2, 3, 4].forEach((element) async {
-    //   await Future.delayed(const Duration(seconds: 1));
-    //   print(element);
-    // });
-    await [1, 2, 3, 4, 5].forEachMapper((element, _, __, ___) async {
-      await Future.delayed(const Duration(seconds: 1));
-      print(element);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

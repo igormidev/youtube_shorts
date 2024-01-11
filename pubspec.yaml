@@ -1,6 +1,6 @@
 name: youtube_shorts
 description: A vertical youtube shorts player. Show youtube shorts videos by a list of urls or the target channel name.
-version: 1.0.0
+version: 1.1.0
 homepage: https://pub.dev/packages/youtube_shorts
 repository: https://github.com/igormidev/youtube_shorts
 issue_tracker: https://github.com/igormidev/youtube_shorts/issues 
@@ -12,10 +12,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # youtube_explode_dart: 
-  #   path: 'youtube_explode_dart'
-    # git@github.com:igormidev/youtube_explode_dart.git
-  # youtube_explode_dart: ^2.0.4
   media_kit: ^1.1.10
   media_kit_video: ^1.2.4
   media_kit_libs_video: ^1.0.4

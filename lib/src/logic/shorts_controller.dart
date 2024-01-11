@@ -2,20 +2,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
+import 'package:youtube_shorts/src/data/type_defs.dart';
 import 'package:youtube_shorts/src/logic/shorts_state.dart';
-import 'package:youtube_shorts/src/logic/videos_source_controller.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:youtube_shorts/src/source/interface_videos_source_controller.dart';
 
-typedef VideoData = ({VideoController videoController, VideoStats videoData});
-typedef VideoDataCompleter = Completer<VideoData>;
-typedef DisposeFunction = FutureOr<void> Function();
+part 'mixin_video_control_shortcut.dart';
 
-class ShortsController extends ValueNotifier<ShortsState> {
+class ShortsController extends ValueNotifier<ShortsState>
+    with MixinVideoControlShortcut {
+  @override
+  final Lock _lock;
   final VideosSourceController _youtubeVideoInfoService;
   final VideoControllerConfiguration _defaultVideoControllerConfiguration;
   final bool _startWithAutoplay;
   final bool _videosWillBeInLoop;
-  final Lock _lock;
 
   /// * [youtubeVideoSourceController] controller can be one of two constructors:
   ///     1. [VideosSourceController.fromUrlList]
@@ -55,6 +56,7 @@ class ShortsController extends ValueNotifier<ShortsState> {
   }
 
   late int prevIndex;
+  @override
   late int currentIndex;
 
   /// Will notify the controller that the current index has changed.
@@ -98,131 +100,139 @@ class ShortsController extends ValueNotifier<ShortsState> {
 
   /// Will load the previus 3 and next 3 videos.
   Future<void> _preloadVideos() async {
-    return _lock.synchronized(() async {
-      ShortsStateWithData? currentState = _getCurrentState();
-      final videos = currentState?.videos;
+    try {
+      return _lock.synchronized(() async {
+        ShortsStateWithData? currentState = _getCurrentState();
+        final videos = currentState?.videos;
 
-      final previus3Ids = [
-        _getMapEntryFromIndex(videos, currentIndex - 3),
-        _getMapEntryFromIndex(videos, currentIndex - 2),
-        _getMapEntryFromIndex(videos, currentIndex - 1),
-      ];
-
-      final next3Ids = [
-        _getMapEntryFromIndex(videos, currentIndex + 1),
-        _getMapEntryFromIndex(videos, currentIndex + 2),
-        _getMapEntryFromIndex(videos, currentIndex + 3),
-      ];
-
-      // Add in state the 3 previus videos and the 3 next videos
-      final focusedItems = [
-        ...previus3Ids,
-        _getMapEntryFromIndex(videos, currentIndex), // Current index
-        ...next3Ids,
-      ];
-
-      // We are fetching one video at a time. So in order to
-      // start fetching a video we need first to fisnish fetching
-      // the current one.
-      //
-      // So what videos should we fetch first? Let's define a fetch order.
-      //
-      // The normal order of indexes of the list is:
-      // [1, 2, 3, 4, 5, 6, 7]
-      // If the current index is, for example, 4, the list will be:
-      // We want to fetch first the fourth video because it is the
-      // current selected one so it is prioritary.
-      // Then, we will fetch the posterior videos because user tipically
-      // scrolls more down then up. So let's fetch them first.
-      // And only then, fetch the videos that are before the current index.
-      // Now, the new list is: [4, 5, 6, 7, 1, 2, 3]
-      final targetIndex = focusedItems.indexWhere((e) => e.key == currentIndex);
-      List<MapEntry<int, VideoDataCompleter?>>? ordoredList;
-      if (targetIndex != -1) {
-        final prevCurrentIndex = focusedItems.sublist(0, targetIndex);
-        final currentIndexAndPosItems = focusedItems.sublist(targetIndex);
-        ordoredList = [
-          ...currentIndexAndPosItems,
-          ...prevCurrentIndex,
+        final previus3Ids = [
+          _getMapEntryFromIndex(videos, currentIndex - 3),
+          _getMapEntryFromIndex(videos, currentIndex - 2),
+          _getMapEntryFromIndex(videos, currentIndex - 1),
         ];
-      }
-      // Load the videos that are not in state
-      for (final item in ordoredList ?? focusedItems) {
-        if (item.key.isNegative) continue;
 
-        if (item.value == null) {
-          final VideoStats? video =
-              await _youtubeVideoInfoService.getVideoByIndex(
-            item.key,
-          );
+        final next3Ids = [
+          _getMapEntryFromIndex(videos, currentIndex + 1),
+          _getMapEntryFromIndex(videos, currentIndex + 2),
+          _getMapEntryFromIndex(videos, currentIndex + 3),
+        ];
 
-          if (video == null) continue;
+        // Add in state the 3 previus videos and the 3 next videos
+        final focusedItems = [
+          ...previus3Ids,
+          _getMapEntryFromIndex(videos, currentIndex), // Current index
+          ...next3Ids,
+        ];
 
-          if (currentState == null) {
-            currentState = ShortsStateWithData(videos: {
-              item.key: VideoDataCompleter(),
-            });
+        // We are fetching one video at a time. So in order to
+        // start fetching a video we need first to fisnish fetching
+        // the current one.
+        //
+        // So what videos should we fetch first? Let's define a fetch order.
+        //
+        // The normal order of indexes of the list is:
+        // [1, 2, 3, 4, 5, 6, 7]
+        // If the current index is, for example, 4, the list will be:
+        // We want to fetch first the fourth video because it is the
+        // current selected one so it is prioritary.
+        // Then, we will fetch the posterior videos because user tipically
+        // scrolls more down then up. So let's fetch them first.
+        // And only then, fetch the videos that are before the current index.
+        // Now, the new list is: [4, 5, 6, 7, 1, 2, 3]
+        final targetIndex =
+            focusedItems.indexWhere((e) => e.key == currentIndex);
+        List<MapEntry<int, VideoDataCompleter?>>? ordoredList;
+        if (targetIndex != -1) {
+          final prevCurrentIndex = focusedItems.sublist(0, targetIndex);
+          final currentIndexAndPosItems = focusedItems.sublist(targetIndex);
+          ordoredList = [
+            ...currentIndexAndPosItems,
+            ...prevCurrentIndex,
+          ];
+        }
+        // Load the videos that are not in state
+        for (final item in ordoredList ?? focusedItems) {
+          if (item.key.isNegative) continue;
 
-            value = currentState;
+          if (item.value == null) {
+            final VideoStats? video =
+                await _youtubeVideoInfoService.getVideoByIndex(
+              item.key,
+            );
+
+            if (video == null) continue;
+
+            if (currentState == null) {
+              currentState = ShortsStateWithData(videos: {
+                item.key: VideoDataCompleter(),
+              });
+
+              value = currentState;
+            } else {
+              final newState = ShortsStateWithData(videos: {
+                ...currentState.videos,
+                item.key: VideoDataCompleter(),
+              });
+              currentState = newState;
+              value = newState;
+            }
+
+            final player = Player();
+            final hostedVideoUrl =
+                Media.normalizeURI(video.hostedVideoInfo.url.toString());
+
+            final willPlay = _startWithAutoplay && item.key == currentIndex;
+
+            await player.open(Media(hostedVideoUrl), play: willPlay);
+            await player.setVolume(100);
+            await player.setPlaylistMode(
+              _videosWillBeInLoop ? PlaylistMode.loop : PlaylistMode.none,
+            );
+            currentState.videos[item.key]?.complete((
+              videoController: VideoController(
+                player,
+                configuration: _defaultVideoControllerConfiguration,
+              ),
+              videoData: video,
+            ));
+          }
+        }
+
+        // Remove from state the videos that are not in focus
+        final focusedItemsIndexes = focusedItems.map((e) => e.key);
+
+        final newMap = <int, VideoDataCompleter>{};
+        currentState?.videos.forEach((key, value) async {
+          if (focusedItemsIndexes.contains(key)) {
+            newMap[key] = value;
           } else {
-            final newState = ShortsStateWithData(videos: {
-              ...currentState.videos,
-              item.key: VideoDataCompleter(),
-            });
-            currentState = newState;
-            value = newState;
+            final isKeyAlreadyInDisposeFunction = _disposeList.containsKey(key);
+            if (isKeyAlreadyInDisposeFunction == false) {
+              _disposeList[key] = () async {
+                final res = await value.future;
+                res.videoController.player.dispose();
+                if (_disposeList.containsKey(key)) {
+                  _disposeList.remove(key);
+                }
+              };
+            }
           }
+        });
 
-          final player = Player();
-          final hostedVideoUrl =
-              Media.normalizeURI(video.hostedVideoInfo.url.toString());
+        value = ShortsStateWithData(
+          videos: newMap,
+        );
 
-          final willPlay = _startWithAutoplay && item.key == currentIndex;
-
-          await player.open(Media(hostedVideoUrl), play: willPlay);
-          await player.setVolume(100);
-          await player.setPlaylistMode(
-            _videosWillBeInLoop ? PlaylistMode.loop : PlaylistMode.none,
-          );
-          currentState.videos[item.key]?.complete((
-            videoController: VideoController(
-              player,
-              configuration: _defaultVideoControllerConfiguration,
-            ),
-            videoData: video,
-          ));
-        }
-      }
-
-      // Remove from state the videos that are not in focus
-      final focusedItemsIndexes = focusedItems.map((e) => e.key);
-
-      final newMap = <int, VideoDataCompleter>{};
-      currentState?.videos.forEach((key, value) async {
-        if (focusedItemsIndexes.contains(key)) {
-          newMap[key] = value;
-        } else {
-          final isKeyAlreadyInDisposeFunction = _disposeList.containsKey(key);
-          if (isKeyAlreadyInDisposeFunction == false) {
-            _disposeList[key] = () async {
-              final res = await value.future;
-              res.videoController.player.dispose();
-              if (_disposeList.containsKey(key)) {
-                _disposeList.remove(key);
-              }
-            };
-          }
-        }
+        _disposeList.forEach((key, value) {
+          value();
+        });
       });
-
-      value = ShortsStateWithData(
-        videos: newMap,
+    } catch (error, stackTrace) {
+      value = ShortsStateError(
+        error: error,
+        stackTrace: stackTrace,
       );
-
-      _disposeList.forEach((key, value) {
-        value();
-      });
-    });
+    }
   }
 
   final Map<int, DisposeFunction> _disposeList = {};
@@ -234,6 +244,7 @@ class ShortsController extends ValueNotifier<ShortsState> {
     return currentState.videos[index];
   }
 
+  @override
   ShortsStateWithData? _getCurrentState() {
     if (value is ShortsStateWithData) {
       final ShortsStateWithData currentValue = (value as ShortsStateWithData);

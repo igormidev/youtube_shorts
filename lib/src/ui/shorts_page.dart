@@ -2,6 +2,7 @@ import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
+import 'package:youtube_shorts/src/data/type_defs.dart';
 import 'package:youtube_shorts/src/logic/shorts_controller.dart';
 import 'package:youtube_shorts/src/logic/shorts_state.dart';
 import 'package:youtube_shorts/youtube_explode_fork/youtube_explode_dart.dart';
@@ -78,7 +79,7 @@ class ShortsPage extends StatefulWidget {
   ///   ),
   /// );
   /// ```
-  final Widget? errrorWidget;
+  final Widget Function(Object error, StackTrace? stackTrace)? errorWidget;
 
   /// If true, will show default video buttons
   /// when user tap's on the screen.
@@ -95,7 +96,7 @@ class ShortsPage extends StatefulWidget {
     this.videoBuilder,
     this.overlayWidgetBuilder,
     this.loadingWidget,
-    this.errrorWidget,
+    this.errorWidget,
     this.willHaveDefaultShortsControllers = true,
   });
 
@@ -125,8 +126,15 @@ class _ShortsPageState extends State<ShortsPage> {
     return ValueListenableBuilder(
       valueListenable: widget.controller,
       builder: (context, shortsState, child) {
-        if (shortsState is ShortsStateWithData) {
+        if (shortsState.isDataState) {
           return child!;
+        } else if (shortsState.isErrorState) {
+          shortsState as ShortsStateError;
+          return widget.errorWidget?.call(
+                shortsState.error,
+                shortsState.stackTrace,
+              ) ??
+              const _DefaultError();
         } else {
           return widget.loadingWidget ?? const _DefaultLoading();
         }
@@ -151,7 +159,11 @@ class _ShortsPageState extends State<ShortsPage> {
               if (snapshot.connectionState == ConnectionState.done) {
                 final data = snapshot.data;
                 if (snapshot.hasError || data == null) {
-                  return widget.errrorWidget ?? const _DefaultError();
+                  return widget.errorWidget?.call(
+                        snapshot.error!,
+                        snapshot.stackTrace,
+                      ) ??
+                      const _DefaultError();
                 }
 
                 return _VideoPlayerDisplay(
