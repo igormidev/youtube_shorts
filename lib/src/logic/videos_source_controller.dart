@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'package:easy_isolate_mixin/easy_isolate_mixin.dart';
-import 'package:youtube_shorts/src/utils/extensions.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:enchanted_collection/enchanted_collection.dart';
+import 'package:youtube_shorts/youtube_explode_fork/youtube_explode_dart.dart';
 
-typedef VideoInfo = ({Video videoData, String hostedVideoUrl});
+typedef VideoStats = ({Video videoData, MuxedStreamInfo hostedVideoInfo});
 
 abstract class VideosSourceController {
   final YoutubeExplode _yt = YoutubeExplode();
@@ -14,11 +15,11 @@ abstract class VideosSourceController {
   /// map is more perfomatic for inserting and removing elements.
   ///
   /// The value is the info of the video.
-  abstract final Map<int, VideoInfo> _videos;
+  abstract final Map<int, VideoStats> _videos;
 
   int get currentMaxLenght => _videos.length;
 
-  Future<VideoInfo?> getVideoByIndex(int index);
+  Future<VideoStats?> getVideoByIndex(int index);
 
   void dispose() {
     _yt.close();
@@ -42,14 +43,17 @@ abstract class VideosSourceController {
     return VideosSourceControllerYoutubeChannel(channelName: channelName);
   }
 
-  Future<String> getVideoUrlFromVideoModel(Video video) async {
+  Future<MuxedStreamInfo> getVideoInfoFromVideoModel(Video video) async {
     final StreamManifest streamInfo =
         await _yt.videos.streamsClient.getManifest(video.id);
 
     final onlyNumberRegex = RegExp(r'[^0-9]');
 
     int currentBiggestQuality = 0;
-    String currentBiggestQualityUrl = '';
+
+    MuxedStreamInfo? muxedStreamInfo;
+
+    // Get the maximum quality
     for (final element in streamInfo.muxed) {
       final qualityLabelInDouble =
           int.tryParse(element.qualityLabel.replaceAll(onlyNumberRegex, ''));
@@ -57,22 +61,22 @@ abstract class VideosSourceController {
 
       if (qualityLabelInDouble > currentBiggestQuality) {
         currentBiggestQuality = qualityLabelInDouble;
-        currentBiggestQualityUrl = element.url.toString();
+        muxedStreamInfo = element;
       }
     }
 
-    if (currentBiggestQuality == 0) {
-      currentBiggestQualityUrl = streamInfo.muxed.last.url.toString();
+    if (currentBiggestQuality == 0 || muxedStreamInfo == null) {
+      muxedStreamInfo = streamInfo.muxed.last;
     }
 
-    return currentBiggestQualityUrl;
+    return muxedStreamInfo;
   }
 }
 
 class VideosSourceControllerFromUrlList extends VideosSourceController
     with IsolateHelperMixin {
   @override
-  final Map<int, VideoInfo> _videos = {};
+  final Map<int, VideoStats> _videos = {};
 
   final Map<int, String> _videoIds;
 
@@ -85,7 +89,7 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
             .mapper((value, isFirst, isLast, index) => MapEntry(index, value)));
 
   @override
-  Future<VideoInfo?> getVideoByIndex(int index) async {
+  Future<VideoStats?> getVideoByIndex(int index) async {
     return loadWithIsolate(() async {
       final cacheVideo = _videos[index];
       if (cacheVideo != null) return Future.value(cacheVideo);
@@ -94,8 +98,8 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
       if (videoid == null) return null;
 
       final video = await _yt.videos.get(videoid);
-      final url = await getVideoUrlFromVideoModel(video);
-      final VideoInfo response = (videoData: video, hostedVideoUrl: url);
+      final info = await getVideoInfoFromVideoModel(video);
+      final VideoStats response = (videoData: video, hostedVideoInfo: info);
       _videos[index] = response;
 
       return response;
@@ -105,50 +109,59 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
 
 class VideosSourceControllerYoutubeChannel extends VideosSourceController {
   @override
-  final Map<int, VideoInfo> _videos = {};
+  final Map<int, VideoStats> _videos = {};
 
   final String _channelName;
 
   ChannelUploadsList? channelUploadsList;
 
   int _lastIndexAdded = 0;
+  final bool onlyVerticalVideos;
 
   VideosSourceControllerYoutubeChannel({
     required String channelName,
+    this.onlyVerticalVideos = true,
   }) : _channelName = channelName;
 
   @override
-  Future<VideoInfo?> getVideoByIndex(int index) async {
-    // Perform your expensive work here
-    // Return the result
+  Future<VideoStats?> getVideoByIndex(int index) async {
     final cacheVideo = _videos[index];
-    if (cacheVideo != null) return Future.value(cacheVideo);
+
+    if (cacheVideo != null) {
+      return Future.value(cacheVideo);
+    }
 
     if (channelUploadsList == null) {
       final channel = await _yt.channels.getByUsername(_channelName);
       channelUploadsList = await _yt.channels.getUploadsFromPage(
         channel.id,
-        VideoSorting.newest,
+        videoSorting: VideoSorting.newest,
+        videoType: VideoType.shorts,
       );
     } else {
       final newChannelUploadsList = await channelUploadsList?.nextPage();
       channelUploadsList = newChannelUploadsList;
     }
 
-    VideoInfo? desiredVideo;
-    await channelUploadsList?.forEachMapper((
+    VideoStats? desiredVideo;
+    final list = channelUploadsList?.toList() ?? [];
+
+    await list.forEachMapper((
       value,
       isFirst,
       isLast,
       innerIndex,
     ) async {
       final video = value;
-      final url = await getVideoUrlFromVideoModel(video);
-      final VideoInfo response = (videoData: video, hostedVideoUrl: url);
+      final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
 
-      _videos[_lastIndexAdded + innerIndex] = response;
+      final VideoStats response = (videoData: video, hostedVideoInfo: info);
 
-      if (innerIndex == index) {
+      final newCacheIndex = _lastIndexAdded + innerIndex;
+      _videos[newCacheIndex] = response;
+
+      final isTargetVideo = innerIndex == index;
+      if (isTargetVideo) {
         desiredVideo = response;
       }
 
@@ -157,9 +170,11 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
       }
     });
 
-    if (desiredVideo == null) {
+    final haveDesiredVideo = desiredVideo != null;
+    if (haveDesiredVideo == false) {
       return null;
     }
+
     return Future.value(desiredVideo);
   }
 }

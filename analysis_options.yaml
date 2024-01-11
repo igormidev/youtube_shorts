@@ -1,4 +1,14 @@
 include: package:flutter_lints/flutter.yaml
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+analyzer:
+  errors:
+    invalid_annotation_target: ignore
+
+  language:
+    strict-casts: false
+
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "example/video_downloader_flutter/"
+    - "lib/youtube_explode_fork/**" 

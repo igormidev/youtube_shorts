@@ -1,3 +1,9 @@
+## 1.0.0
+* Stable version (No more alpha)
+* Ended `VideosSourceController.fromYoutubeChannel()` implementation. Now without bugs.
+* `VideoInfo` renamed to `VideoStats`
+* `VideoStats` (previous VideoInfo) now does not carry more the hostedVideoUrl. But instead it contains *hostedVideoInfo* that is a more complext object with more information.
+
 ## 0.4.5 - Alpha
 * Using multithread for perfomance improvement
 

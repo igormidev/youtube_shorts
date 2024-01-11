@@ -1,18 +1,18 @@
+import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:youtube_shorts/src/logic/shorts_controller.dart';
 import 'package:youtube_shorts/src/logic/shorts_state.dart';
-import 'package:youtube_shorts/src/utils/extensions.dart';
+import 'package:youtube_shorts/youtube_explode_fork/youtube_explode_dart.dart';
 
 typedef VideoDataBuilder = Widget Function(
   int index,
   PageController pageController,
   VideoController videoController,
   Video videoData,
-  String hostedVideoUrl,
-  Widget Function() child,
+  MuxedStreamInfo hostedVideoInfo,
+  Widget child,
 );
 
 typedef VideoInfoBuilder = Widget Function(
@@ -20,7 +20,7 @@ typedef VideoInfoBuilder = Widget Function(
   PageController pageController,
   VideoController videoController,
   Video videoData,
-  String hostedVideoUrl,
+  MuxedStreamInfo hostedVideoInfo,
 );
 
 class ShortsPage extends StatefulWidget {
@@ -204,48 +204,45 @@ class _VideoPlayerDisplayState extends State<_VideoPlayerDisplay>
   @override
   bool get wantKeepAlive => true;
 
-  bool didBuildOneTime = false;
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    didBuildOneTime = true;
     return Stack(
       children: [
         SizedBox.expand(
-          child: Builder(builder: (context) {
-            Widget childBuilder() {
+          child: Builder(
+            builder: (context) {
               final willIgnore = !widget.willHaveDefaultShortsControllers;
 
-              return IgnorePointer(
+              final videoPlayer = IgnorePointer(
                 ignoring: willIgnore,
                 child: media_kit.Video(
                   fill: Colors.transparent,
                   controller: widget.data.videoController,
                 ),
               );
-            }
+              if (widget.videoBuilder != null) {
+                return widget.videoBuilder!(
+                  widget.index,
+                  widget.pageController,
+                  widget.data.videoController,
+                  widget.data.videoData.videoData,
+                  widget.data.videoData.hostedVideoInfo,
+                  videoPlayer,
+                );
+              }
 
-            if (widget.videoBuilder != null) {
-              return widget.videoBuilder!(
-                widget.index,
-                widget.pageController,
-                widget.data.videoController,
-                widget.data.videoData.videoData,
-                widget.data.videoData.hostedVideoUrl,
-                childBuilder,
-              );
-            }
-
-            return childBuilder();
-          }),
+              return videoPlayer;
+            },
+          ),
         ),
         widget.overlayWidgetBuilder?.call(
           widget.index,
           widget.pageController,
           widget.data.videoController,
           widget.data.videoData.videoData,
-          widget.data.videoData.hostedVideoUrl,
+          widget.data.videoData.hostedVideoInfo,
         ),
       ].removeNull,
     );
