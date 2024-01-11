@@ -1,8 +1,7 @@
 import 'dart:async';
-
 import 'package:easy_isolate_mixin/easy_isolate_mixin.dart';
 import 'package:enchanted_collection/enchanted_collection.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:youtube_shorts/youtube_explode_fork/youtube_explode_dart.dart';
 
 typedef VideoStats = ({Video videoData, MuxedStreamInfo hostedVideoInfo});
 
@@ -126,41 +125,27 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
 
   @override
   Future<VideoStats?> getVideoByIndex(int index) async {
-    // Perform your expensive work here
-    // Return the result
     final cacheVideo = _videos[index];
 
-    print('tracking 0: index - ($index)');
-    print('tracking 1: cacheVideo - (${cacheVideo != null})');
-
     if (cacheVideo != null) {
-      print('tracking 1 - (returned)');
       return Future.value(cacheVideo);
     }
 
-    print(
-      'tracking 2: channelUploadsList - (${channelUploadsList?.channel.value})',
-    );
     if (channelUploadsList == null) {
       final channel = await _yt.channels.getByUsername(_channelName);
-      print('tracking 3.1.1: channel - (${channel.id})');
       channelUploadsList = await _yt.channels.getUploadsFromPage(
         channel.id,
-        VideoSorting.newest,
-      );
-      print(
-        'tracking 3.1.2: channelUploadsList - (${channelUploadsList?.channel.value})',
+        videoSorting: VideoSorting.newest,
+        videoType: VideoType.shorts,
       );
     } else {
       final newChannelUploadsList = await channelUploadsList?.nextPage();
-      print(
-        'tracking 2.2.1: newChannelUploadsList - (${newChannelUploadsList?.channel.value})',
-      );
       channelUploadsList = newChannelUploadsList;
     }
 
     VideoStats? desiredVideo;
     final list = channelUploadsList?.toList() ?? [];
+
     await list.forEachMapper((
       value,
       isFirst,
@@ -168,24 +153,18 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
       innerIndex,
     ) async {
       final video = value;
-      final urhl = value.url;
-      print('asd: $urhl');
-      final info = await getVideoInfoFromVideoModel(video);
+      final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
 
-      print('tracking 4.$innerIndex: url');
       final VideoStats response = (videoData: video, hostedVideoInfo: info);
 
       final newCacheIndex = _lastIndexAdded + innerIndex;
       _videos[newCacheIndex] = response;
-      print('tracking 5.$innerIndex: newCacheIndex - ($newCacheIndex)');
 
       final isTargetVideo = innerIndex == index;
-      print('tracking 6.$innerIndex: isTargetVideo - ($isTargetVideo)');
       if (isTargetVideo) {
         desiredVideo = response;
       }
 
-      print('tracking 7.$innerIndex: isLast - ($isLast)');
       if (isLast) {
         _lastIndexAdded = _lastIndexAdded += innerIndex;
       }
@@ -193,11 +172,9 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
 
     final haveDesiredVideo = desiredVideo != null;
     if (haveDesiredVideo == false) {
-      print('tracking 8 - (returned)');
       return null;
     }
 
-    print('tracking 8 - SUCCESS');
     return Future.value(desiredVideo);
   }
 }

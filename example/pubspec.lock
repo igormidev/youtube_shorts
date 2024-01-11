@@ -584,11 +584,10 @@ packages:
   youtube_explode_dart:
     dependency: transitive
     description:
-      name: youtube_explode_dart
-      sha256: "98fd11b51adbbca76cbdb17f560168f1d7a9835cecceea965f49eb1e5eed155c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.2"
+      path: "../youtube_explode_dart"
+      relative: true
+    source: path
+    version: "2.0.4"
   youtube_shorts:
     dependency: "direct main"
     description:

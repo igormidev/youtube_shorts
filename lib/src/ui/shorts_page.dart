@@ -2,9 +2,9 @@ import 'package:enchanted_collection/enchanted_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:youtube_shorts/src/logic/shorts_controller.dart';
 import 'package:youtube_shorts/src/logic/shorts_state.dart';
+import 'package:youtube_shorts/youtube_explode_fork/youtube_explode_dart.dart';
 
 typedef VideoDataBuilder = Widget Function(
   int index,
