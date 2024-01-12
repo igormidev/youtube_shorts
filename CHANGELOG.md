@@ -1,3 +1,6 @@
+## 1.1.1
+* (internal) Removed lock of synchronized package in places that are not needed 
+
 ## 1.1.0
 * Error State added to package with the error and stacktrace details
 * Added shortcut in controller to pause, play, mute and set volume. So now it's no more needed to call the current 
