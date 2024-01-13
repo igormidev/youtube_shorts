@@ -1,7 +1,7 @@
 part of 'interface_videos_source_controller.dart';
 
 class VideosSourceControllerFromUrlList extends VideosSourceController
-    with IsolateHelperMixin {
+    with easy_isolate_mixin.IsolateHelperMixin {
   @override
   final Map<int, VideoStats> _videos = {};
 

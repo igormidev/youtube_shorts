@@ -10,14 +10,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter 
-  cupertino_icons: ^1.0.2 
+  cupertino_icons: ^1.0.2
   youtube_shorts:
     path: '../'
-  enchanted_collection: 
+  enchanted_collection: ^1.2.0 
+  image_network: ^2.5.4+1 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter 
-  flutter_lints: ^2.0.0 
+  flutter_lints: ^2.0.0
+
 flutter: 
   uses-material-design: true 
+  assets:
+    - art/logo.PNG
