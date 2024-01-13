@@ -1,9 +1,6 @@
-// ignore_for_file: depend_on_referenced_packages
-
 import 'package:example/pages/shorts_by_channel_name.dart';
 import 'package:example/pages/shorts_by_video_url.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
 
 void main() {
@@ -54,8 +51,8 @@ class SelectionPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.network(
-              'https://freelogopng.com/images/all_img/1684952459youtube-shorts-logo-png.png',
+            Image.asset(
+              'art/logo.PNG',
               width: 300,
             ),
             const SizedBox(height: 16),
