@@ -1,7 +1,7 @@
 part of 'shorts_controller.dart';
 
 mixin MixinVideoControlShortcut {
-  abstract final Lock _lock;
+  final Lock _videoControllerLock = Lock();
   ShortsStateWithData? _getCurrentState();
   int get currentIndex;
 
@@ -17,7 +17,7 @@ mixin MixinVideoControlShortcut {
     final currentVideoFuture = currentState.videos[currentIndex];
     if (currentVideoFuture == null) return;
 
-    return await _lock.synchronized(() async {
+    return await _videoControllerLock.synchronized(() async {
       final currentVideo = await currentVideoFuture.future;
       currentVideo.videoController.player.pause();
     });
@@ -35,7 +35,7 @@ mixin MixinVideoControlShortcut {
     final currentVideoFuture = currentState.videos[currentIndex];
     if (currentVideoFuture == null) return;
 
-    return await _lock.synchronized(() async {
+    return await _videoControllerLock.synchronized(() async {
       final currentVideo = await currentVideoFuture.future;
       currentVideo.videoController.player.play();
     });
@@ -53,7 +53,7 @@ mixin MixinVideoControlShortcut {
     final currentVideoFuture = currentState.videos[currentIndex];
     if (currentVideoFuture == null) return;
 
-    return await _lock.synchronized(() async {
+    return await _videoControllerLock.synchronized(() async {
       final currentVideo = await currentVideoFuture.future;
       currentVideo.videoController.player.setVolume(0);
     });
@@ -72,7 +72,7 @@ mixin MixinVideoControlShortcut {
     final currentVideoFuture = currentState.videos[currentIndex];
     if (currentVideoFuture == null) return;
 
-    return _lock.synchronized(() async {
+    return _videoControllerLock.synchronized(() async {
       final currentVideo = await currentVideoFuture.future;
       currentVideo.videoController.player.setVolume(volume);
     });

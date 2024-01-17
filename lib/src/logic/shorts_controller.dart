@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
+import 'package:youtube_shorts/src/data/shorts_controller_settings.dart';
 import 'package:youtube_shorts/src/data/type_defs.dart';
 import 'package:youtube_shorts/src/logic/shorts_state.dart';
 import 'package:synchronized/synchronized.dart';
@@ -11,12 +12,10 @@ part 'mixin_video_control_shortcut.dart';
 
 class ShortsController extends ValueNotifier<ShortsState>
     with MixinVideoControlShortcut {
-  @override
   final Lock _lock;
   final VideosSourceController _youtubeVideoInfoService;
   final VideoControllerConfiguration _defaultVideoControllerConfiguration;
-  final bool _startWithAutoplay;
-  final bool _videosWillBeInLoop;
+  ShortsControllerSettings _settings;
 
   /// * [youtubeVideoSourceController] controller can be one of two constructors:
   ///     1. [VideosSourceController.fromUrlList]
@@ -33,12 +32,12 @@ class ShortsController extends ValueNotifier<ShortsState>
   /// of [media_kit](https://pub.dev/packages/media_kit).
   ShortsController({
     required VideosSourceController youtubeVideoSourceController,
-    bool startWithAutoplay = true,
+    ShortsControllerSettings settings = const ShortsControllerSettings(),
     bool videosWillBeInLoop = true,
+    bool startVideoMuted = false,
     VideoControllerConfiguration defaultVideoControllerConfiguration =
         const VideoControllerConfiguration(),
-  })  : _startWithAutoplay = startWithAutoplay,
-        _videosWillBeInLoop = videosWillBeInLoop,
+  })  : _settings = settings,
         _defaultVideoControllerConfiguration =
             defaultVideoControllerConfiguration,
         _youtubeVideoInfoService = youtubeVideoSourceController,
@@ -58,6 +57,16 @@ class ShortsController extends ValueNotifier<ShortsState>
   late int prevIndex;
   @override
   late int currentIndex;
+
+  /// Will not update the video that already are in state/loaded.
+  ///
+  /// Will only update the next videos that are not in
+  /// state/loaded yet (that still will be fetched).
+  void updateControllerSettings({
+    required UpdateSettingsFunction updateFunction,
+  }) {
+    _settings = updateFunction(_settings);
+  }
 
   /// Will notify the controller that the current index has changed.
   /// This will trigger the preload of the previus 3 and next 3 videos.
@@ -88,7 +97,7 @@ class ShortsController extends ValueNotifier<ShortsState>
       }
     }
 
-    if (_startWithAutoplay == false) return;
+    if (_settings.startWithAutoplay == false) return;
 
     final currentVideo = getVideoInIndex(currentIndex);
     if (currentVideo != null) {
@@ -181,12 +190,19 @@ class ShortsController extends ValueNotifier<ShortsState>
             final hostedVideoUrl =
                 Media.normalizeURI(video.hostedVideoInfo.url.toString());
 
-            final willPlay = _startWithAutoplay && item.key == currentIndex;
+            final willPlay =
+                _settings.startWithAutoplay && item.key == currentIndex;
 
             await player.open(Media(hostedVideoUrl), play: willPlay);
-            await player.setVolume(100);
+            if (_settings.startVideoMuted) {
+              await player.setVolume(0);
+            } else {
+              await player.setVolume(100);
+            }
             await player.setPlaylistMode(
-              _videosWillBeInLoop ? PlaylistMode.loop : PlaylistMode.none,
+              _settings.videosWillBeInLoop
+                  ? PlaylistMode.loop
+                  : PlaylistMode.none,
             );
             currentState.videos[item.key]?.complete((
               videoController: VideoController(

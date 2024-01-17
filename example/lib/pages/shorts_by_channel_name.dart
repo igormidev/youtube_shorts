@@ -114,7 +114,7 @@ class _ShortsByChannelNameDisplayState
 
   @override
   Widget build(BuildContext context) {
-    return ShortsPage(
+    return YoutubeShortsPage(
       controller: controller,
     );
   }

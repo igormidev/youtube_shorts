@@ -181,7 +181,19 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return ShortsPage(
+    return Scaffold(
+      body: Center(
+        child: ColoredBox(
+          color: Colors.green,
+          child: YoutubeShortsHorizontalStoriesSection(
+            shortsPreviewHeight: 295,
+            controller: controller,
+          ),
+        ),
+      ),
+    );
+
+    return YoutubeShortsPage(
       controller: controller,
       overlayWidgetBuilder: (
         int index,

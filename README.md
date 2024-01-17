@@ -106,7 +106,7 @@ Now, we need too add the widget that shows the shorts and will use the controlle
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
   );
 }
@@ -162,7 +162,7 @@ Some default controllers are in the player (time control, pause/play etc). Those
 @override
 Widget build(BuildContext context) {
   willHaveDefaultShortsControllers: false, // No more default controllers on video.
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
   );
 }
@@ -174,7 +174,7 @@ This is usefull if you want to display something like controllers or more.
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
     overlayWidgetBuilder: (
       int index,
@@ -197,7 +197,7 @@ You can display a widget that will be shown while the video is loading.
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
     loadingWidget: Center(
       child: MyCustomCoolLoadingIndicator(),
@@ -212,7 +212,7 @@ You will have a error and probably a stacktrace also (can be null).
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller, 
     errorWidget: (error, stackTrace) {
       return Center(
@@ -228,7 +228,7 @@ Widget build(BuildContext context) {
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller, 
     videoBuilder: (
       int index,

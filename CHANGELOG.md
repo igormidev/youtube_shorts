@@ -1,3 +1,14 @@
+## 2.0.1
+* Color bug fix
+
+## 2.0.0
+### ⚠️ BREAKING CHANGES!
+* `ShortsPage` renamed to `YoutubeShortsPage`
+* Configs variables and `startWithAutoplay` and `startVideoMuted` are not more in `ShortsControllerSettings`. But inside `ShortsControllerSettings` class of `controllerSettings` parameter of `ShortsControllerSettings`
+* `ShortsControllerSettings` added to `ShortsControllerSettings`
+* Widget `YoutubeShortsHorizontalStoriesSection` added
+* Boolean setting `startVideoMuted` added to `ShortsController` settings
+
 ## 1.1.1
 * (internal) Removed lock of synchronized package in places that are not needed 
 
