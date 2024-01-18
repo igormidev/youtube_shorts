@@ -8,6 +8,7 @@ class ConditionToUpdateValueListenable<T> extends StatefulWidget {
   final ValueNotifier<int> currentIndexNotifier;
   final int index;
   final Widget Function(BuildContext context) builder;
+  final Widget emptyWidget;
 
   const ConditionToUpdateValueListenable({
     super.key,
@@ -15,6 +16,7 @@ class ConditionToUpdateValueListenable<T> extends StatefulWidget {
     required this.currentIndexNotifier,
     required this.index,
     required this.builder,
+    required this.emptyWidget,
   });
 
   @override
@@ -63,7 +65,7 @@ class _ConditionToUpdateValueListenableState
     if (willShow) {
       return widget.builder(context);
     } else {
-      return SizedBox.fromSize();
+      return widget.emptyWidget;
     }
   }
 }

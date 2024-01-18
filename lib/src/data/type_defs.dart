@@ -24,6 +24,12 @@ typedef DisposeFunction = FutureOr<void> Function();
 typedef UpdateSettingsFunction = ShortsControllerSettings Function(
     ShortsControllerSettings currentController);
 
+typedef OnNotifyCallback = FutureOr<void> Function(
+  VideoData prevVideo,
+  int prevIndex,
+  int currentIndex,
+);
+
 typedef VideoDataBuilder = Widget Function(
   int index,
   PageController pageController,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:youtube_shorts/src/data/type_defs.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
 import 'package:youtube_shorts/src/ui/elements/video_data_loader_element.dart';
 import 'package:youtube_shorts/src/ui/elements/youtube_shorts_video_player.dart';
@@ -69,7 +70,15 @@ class YoutubeShortsPage extends StatefulWidget {
   /// - fullscreen button
   final bool willHaveDefaultShortsControllers;
 
-  final bool forceNotMutedAudio;
+  /// When the video switches from one to other use this function to execute any logic
+  /// The logic will be executed after the previous video is paused
+  final OnNotifyCallback? onPrevVideoPauseCallback;
+
+  /// When the video switches from one to other use this function to execute any logic
+  /// The logic will be executed after the current video is played
+  final OnNotifyCallback? onCurrentVideoPlayCallback;
+
+  final double? initialVolume;
 
   /// The widget that will display the video.
   const YoutubeShortsPage({
@@ -79,8 +88,10 @@ class YoutubeShortsPage extends StatefulWidget {
     this.overlayWidgetBuilder,
     this.loadingWidget,
     this.errorWidget,
-    this.forceNotMutedAudio = false,
+    this.onPrevVideoPauseCallback,
+    this.onCurrentVideoPlayCallback,
     this.willHaveDefaultShortsControllers = true,
+    this.initialVolume,
   });
 
   @override
@@ -114,7 +125,11 @@ class _YoutubeShortsPageState extends State<YoutubeShortsPage> {
         scrollDirection: Axis.vertical,
         controller: pageController,
         onPageChanged: (index) {
-          widget.controller.notifyCurrentIndex(index);
+          widget.controller.notifyCurrentIndex(
+            index,
+            onCurrentVideoPlay: widget.onCurrentVideoPlayCallback,
+            onPrevVideoPause: widget.onPrevVideoPauseCallback,
+          );
         },
         itemBuilder: (context, index) {
           final bool isSelectedIndex = widget.controller.currentIndex == index;
@@ -140,7 +155,7 @@ class _YoutubeShortsPageState extends State<YoutubeShortsPage> {
                 data: videoData,
                 videoBuilder: widget.videoBuilder,
                 overlayWidgetBuilder: widget.overlayWidgetBuilder,
-                forceNotMutedAudio: widget.forceNotMutedAudio,
+                initialVolume: widget.initialVolume,
               );
             },
           );

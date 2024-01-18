@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
+import 'package:youtube_shorts/src/data/not_focused_ui_type.dart';
 import 'package:youtube_shorts/src/ui/elements/condition_to_update_value_listenable.dart';
+import 'package:youtube_shorts/src/ui/elements/default_widgets.dart';
 import 'package:youtube_shorts/src/ui/elements/video_completer_future_builder.dart';
 import 'package:youtube_shorts/src/ui/elements/video_data_loader_element.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
 
 class YoutubeShortsHorizontalStoriesSection extends StatefulWidget {
+  /// The type of the ui that will be displayed when the video is not focused
+  /// and the user is not interacting with the video.
+  ///
+  /// You can show a preview of the video, or the video tumbnail.
+  final NotFocusedUiType notFocusedUiType;
+
   /// The controller of the short's.
   final ShortsController controller;
 
@@ -82,6 +90,7 @@ class YoutubeShortsHorizontalStoriesSection extends StatefulWidget {
     this.overlayWidgetBuilder,
     this.willHaveDefaultShortsControllers = true,
     this.shortsPreviewHeight = 295,
+    this.notFocusedUiType = const PlayerPaused(),
   });
 
   @override
@@ -94,23 +103,10 @@ class _YoutubeShortsHorizontalStoriesSectionState
   late PageController pageController;
   final ValueNotifier<int> selectedIndex = ValueNotifier<int>(0);
 
-  @override
-  void initState() {
-    widget.controller.updateControllerSettings(
-      updateFunction: (currentController) {
-        return currentController.copyWith(
-          startVideoMuted: true,
-        );
-      },
-    );
-
-    super.initState();
-  }
-
   void _configurePageController(double deviceWidth) {
     /// 295 = 411.429
     ///  x  = deviceWidth
-    final otimizedSize = 411.429 * 295 / deviceWidth;
+    final otimizedSize = 295 * deviceWidth / 411.429;
 
     // 295 is default height value. 0.40 is default aspect ratio of 307
     // 295 - 0.40
@@ -121,95 +117,148 @@ class _YoutubeShortsHorizontalStoriesSectionState
     pageController = PageController(
       viewportFraction: targetViewportFraction,
     );
+
+    /// Override current settings to not start with volume.
+    widget.controller.updateControllerSettings(
+      updateFunction: (currentController) {
+        return currentController.copyWith(
+          startVideoWithVolume: 0,
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       _configurePageController(constraints.maxWidth);
-      return VideoDataLoaderElement(
-        controller: widget.controller,
-        errorWidget: widget.errorWidget,
-        loadingWidget: widget.loadingWidget,
-        child: SizedBox(
-          height: widget.shortsPreviewHeight,
-          child: PageView.builder(
-            controller: pageController,
-            onPageChanged: (int index) {
-              selectedIndex.value = index;
-              widget.controller.notifyCurrentIndex(index);
-            },
-            padEnds: false,
-            itemBuilder: (context, index) {
-              return ConditionToUpdateValueListenable(
-                currentIndexNotifier: selectedIndex,
-                index: index,
-                controller: widget.controller,
-                builder: (context) {
-                  final ShortsStateWithData shortsState =
-                      widget.controller.value as ShortsStateWithData;
 
-                  final isPlaceHolderPadding = index >= shortsState.maxLenght;
-                  if (isPlaceHolderPadding) {
-                    return const SizedBox.shrink();
-                  }
+      return SizedBox(
+        height: widget.shortsPreviewHeight,
+        child: VideoDataLoaderElement(
+          controller: widget.controller,
+          errorWidget: widget.errorWidget,
+          loadingWidget: widget.loadingWidget,
+          child: Builder(builder: (context) {
+            return PageView.builder(
+              controller: pageController,
+              onPageChanged: (int index) {
+                selectedIndex.value = index;
+                widget.controller.notifyCurrentIndex(index);
+              },
+              padEnds: false,
+              itemBuilder: (context, index) {
+                return ConditionToUpdateValueListenable(
+                  currentIndexNotifier: selectedIndex,
+                  index: index,
+                  controller: widget.controller,
+                  emptyWidget: widget.loadingWidget ??
+                      const YoutubeShortsDefaultLoadingWidget(),
+                  builder: (context) {
+                    final ShortsStateWithData shortsState =
+                        widget.controller.value as ShortsStateWithData;
 
-                  final bool isSelectedIndex =
-                      widget.controller.currentIndex == index;
-                  final int maxLenght = shortsState.maxLenght;
-                  final bool isIndexBellowMaxLenght = index >= maxLenght;
+                    final isPlaceHolderPadding = index >= shortsState.maxLenght;
+                    if (isPlaceHolderPadding) {
+                      return const SizedBox.shrink();
+                    }
 
-                  if (!isSelectedIndex && isIndexBellowMaxLenght) {
-                    return SizedBox.fromSize();
-                  }
+                    final bool isSelectedIndex =
+                        widget.controller.currentIndex == index;
+                    final int maxLenght = shortsState.maxLenght;
+                    final bool isIndexBellowMaxLenght = index >= maxLenght;
 
-                  return VideoCompleterFutureBuilder(
-                    index: index,
-                    controller: widget.controller,
-                    errorWidget: widget.errorWidget,
-                    loadingWidget: widget.loadingWidget,
-                    builder: (context, videoData) {
-                      return ValueListenableBuilder(
-                        valueListenable: selectedIndex,
-                        builder: (context, value, child) {
-                          final bool isSelected = index == value;
+                    if (!isSelectedIndex && isIndexBellowMaxLenght) {
+                      return SizedBox.fromSize();
+                    }
 
-                          return Transform.scale(
-                            scale: isSelected ? 1 : 0.95,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 8,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: InkWell(
-                                  onTap: () async {
-                                    if (isSelected) {
-                                      _goToShortsPage();
-                                    } else {
-                                      _animateToPageWithIndex(index);
-                                    }
-                                  },
-                                  child: IgnorePointer(
-                                    ignoring: true,
-                                    child: media_kit.Video(
-                                      fill: Colors.transparent,
-                                      controller: videoData.videoController,
+                    return VideoCompleterFutureBuilder(
+                      index: index,
+                      controller: widget.controller,
+                      errorWidget: widget.errorWidget,
+                      loadingWidget: widget.loadingWidget,
+                      builder: (context, videoData) {
+                        return ValueListenableBuilder(
+                          valueListenable: selectedIndex,
+                          builder: (context, value, child) {
+                            final bool isSelected = index == value;
+
+                            return Transform.scale(
+                              scale: isSelected ? 1 : 0.95,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 8,
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      if (isSelected) {
+                                        _goToShortsPage(index);
+                                      } else {
+                                        _animateToPageWithIndex(index);
+                                      }
+                                    },
+                                    child: IgnorePointer(
+                                      ignoring: true,
+                                      child: switch (widget.notFocusedUiType) {
+                                        PlayerPaused() => media_kit.Video(
+                                            fill: Colors.transparent,
+                                            controller:
+                                                videoData.videoController,
+                                          ),
+                                        WithTumbnailType tumbnail => isSelected
+                                            ? media_kit.Video(
+                                                fill: Colors.transparent,
+                                                controller:
+                                                    videoData.videoController,
+                                              )
+                                            : Builder(
+                                                builder: (context) {
+                                                  final dataTumbnail = videoData
+                                                      .videoData
+                                                      .videoData
+                                                      .thumbnails;
+                                                  return Image.network(
+                                                    switch (tumbnail.quality) {
+                                                      TumbnailQuality
+                                                            .lowResUrl =>
+                                                        dataTumbnail.lowResUrl,
+                                                      TumbnailQuality
+                                                            .mediumResUrl =>
+                                                        dataTumbnail
+                                                            .mediumResUrl,
+                                                      TumbnailQuality
+                                                            .standardResUrl =>
+                                                        dataTumbnail
+                                                            .standardResUrl,
+                                                      TumbnailQuality
+                                                            .highResUrl =>
+                                                        dataTumbnail.highResUrl,
+                                                      TumbnailQuality
+                                                            .maxResUrl =>
+                                                        dataTumbnail.maxResUrl,
+                                                    },
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                },
+                                              ),
+                                      },
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              );
-            },
-          ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          }),
         ),
       );
     });
@@ -231,40 +280,30 @@ class _YoutubeShortsHorizontalStoriesSectionState
     );
   }
 
-  void _goToShortsPage() async {
-    widget.controller.updateControllerSettings(
-      updateFunction: (currentController) {
-        return currentController.copyWith(
-          startVideoMuted: false,
-        );
-      },
-    );
+  void _goToShortsPage(int index) async {
+    widget.controller.setVideoVolumeWithIndex(100, index);
 
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
           return YoutubeShortsPage(
             controller: widget.controller,
-            forceNotMutedAudio: true,
             errorWidget: widget.errorWidget,
             loadingWidget: widget.loadingWidget,
             overlayWidgetBuilder: widget.overlayWidgetBuilder,
             videoBuilder: widget.videoBuilder,
             willHaveDefaultShortsControllers:
                 widget.willHaveDefaultShortsControllers,
+            initialVolume: 100,
+            onCurrentVideoPlayCallback: (prevVideo, prevIndex, currentIndex) {
+              selectedIndex.value = currentIndex;
+              pageController.jumpToPage(currentIndex);
+            },
           );
         },
       ),
     );
 
     widget.controller.muteCurrentVideo();
-
-    widget.controller.updateControllerSettings(
-      updateFunction: (currentController) {
-        return currentController.copyWith(
-          startVideoMuted: true,
-        );
-      },
-    );
   }
 }

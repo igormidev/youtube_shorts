@@ -1,3 +1,11 @@
+## 2.1.0
+* Added `notFocusedUiType` parameter to `YoutubeShortsHorizontalStoriesSection`
+* Added circular progress indicator in `YoutubeShortsHorizontalStoriesSection` widget
+* `setCurrentVideoVolume` renamed to `setCurrentVideoVolume`
+* `startVideoWithVolume` config added
+* `onPrevVideoPause` added to notifyCurrentIndex function
+* `onCurrentVideoPlay` added to notifyCurrentIndex function
+
 ## 2.0.1
 * Color bug fix
 

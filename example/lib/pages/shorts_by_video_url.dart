@@ -183,12 +183,9 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: ColoredBox(
-          color: Colors.green,
-          child: YoutubeShortsHorizontalStoriesSection(
-            shortsPreviewHeight: 295,
-            controller: controller,
-          ),
+        child: YoutubeShortsHorizontalStoriesSection(
+          shortsPreviewHeight: 295,
+          controller: controller,
         ),
       ),
     );

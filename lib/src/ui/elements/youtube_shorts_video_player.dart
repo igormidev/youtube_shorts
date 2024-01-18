@@ -10,7 +10,7 @@ class YoutubeShortsVideoPlayer extends StatefulWidget {
   final VideoData data;
   final VideoDataBuilder? videoBuilder;
   final VideoInfoBuilder? overlayWidgetBuilder;
-  final bool forceNotMutedAudio;
+  final double? initialVolume;
   const YoutubeShortsVideoPlayer({
     super.key,
     required this.willHaveDefaultShortsControllers,
@@ -19,7 +19,7 @@ class YoutubeShortsVideoPlayer extends StatefulWidget {
     required this.data,
     this.videoBuilder,
     this.overlayWidgetBuilder,
-    required this.forceNotMutedAudio,
+    this.initialVolume,
   });
 
   @override
@@ -30,17 +30,26 @@ class YoutubeShortsVideoPlayer extends StatefulWidget {
 class _YoutubeShortsVideoPlayerState extends State<YoutubeShortsVideoPlayer>
     with AutomaticKeepAliveClientMixin<YoutubeShortsVideoPlayer> {
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   void initState() {
-    final isNotAlreadyMaxVolume =
-        widget.data.videoController.player.state.audioBitrate != 100;
-    if (widget.forceNotMutedAudio && isNotAlreadyMaxVolume) {
-      widget.data.videoController.player.setVolume(100);
-    }
+    _initialVolume();
     super.initState();
   }
+
+  @override
+  void didChangeDependencies() {
+    _initialVolume();
+    super.didChangeDependencies();
+  }
+
+  void _initialVolume() {
+    final double? initialVolume = widget.initialVolume;
+    if (initialVolume != null) {
+      widget.data.videoController.player.setVolume(initialVolume);
+    }
+  }
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {

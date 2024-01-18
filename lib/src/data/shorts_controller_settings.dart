@@ -1,42 +1,42 @@
 class ShortsControllerSettings {
   final bool startWithAutoplay;
-  final bool startVideoMuted;
+  final double startVideoWithVolume;
   final bool videosWillBeInLoop;
 
   const ShortsControllerSettings({
     this.startWithAutoplay = true,
-    this.startVideoMuted = false,
+    this.startVideoWithVolume = 100,
     this.videosWillBeInLoop = true,
   });
 
   ShortsControllerSettings copyWith({
     bool? startWithAutoplay,
-    bool? startVideoMuted,
+    double? startVideoWithVolume,
     bool? videosWillBeInLoop,
   }) {
     return ShortsControllerSettings(
       startWithAutoplay: startWithAutoplay ?? this.startWithAutoplay,
-      startVideoMuted: startVideoMuted ?? this.startVideoMuted,
+      startVideoWithVolume: startVideoWithVolume ?? this.startVideoWithVolume,
       videosWillBeInLoop: videosWillBeInLoop ?? this.videosWillBeInLoop,
     );
   }
 
   @override
   String toString() =>
-      'ShortsControllerSettings(startWithAutoplay: $startWithAutoplay, startVideoMuted: $startVideoMuted, videosWillBeInLoop: $videosWillBeInLoop)';
+      'ShortsControllerSettings(startWithAutoplay: $startWithAutoplay, startVideoMuted: $startVideoWithVolume, videosWillBeInLoop: $videosWillBeInLoop)';
 
   @override
   bool operator ==(covariant ShortsControllerSettings other) {
     if (identical(this, other)) return true;
 
     return other.startWithAutoplay == startWithAutoplay &&
-        other.startVideoMuted == startVideoMuted &&
+        other.startVideoWithVolume == startVideoWithVolume &&
         other.videosWillBeInLoop == videosWillBeInLoop;
   }
 
   @override
   int get hashCode =>
       startWithAutoplay.hashCode ^
-      startVideoMuted.hashCode ^
+      startVideoWithVolume.hashCode ^
       videosWillBeInLoop.hashCode;
 }

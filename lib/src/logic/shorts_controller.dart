@@ -55,6 +55,7 @@ class ShortsController extends ValueNotifier<ShortsState>
   }
 
   late int prevIndex;
+
   @override
   late int currentIndex;
 
@@ -70,13 +71,19 @@ class ShortsController extends ValueNotifier<ShortsState>
 
   /// Will notify the controller that the current index has changed.
   /// This will trigger the preload of the previus 3 and next 3 videos.
-  void notifyCurrentIndex(int newIndex) {
+  void notifyCurrentIndex(
+    int newIndex, {
+    OnNotifyCallback? onPrevVideoPause,
+    OnNotifyCallback? onCurrentVideoPlay,
+  }) async {
     prevIndex = currentIndex;
     currentIndex = newIndex;
     unawaited(
       _playCurrentVideoAndPausePreviousVideo(
         prevIndex: prevIndex,
         currentIndex: currentIndex,
+        onPrevVideoPause: onPrevVideoPause,
+        onCurrentVideoPlay: onCurrentVideoPlay,
       ),
     );
 
@@ -86,14 +93,18 @@ class ShortsController extends ValueNotifier<ShortsState>
   Future<void> _playCurrentVideoAndPausePreviousVideo({
     required int prevIndex,
     required int currentIndex,
+    required OnNotifyCallback? onPrevVideoPause,
+    required OnNotifyCallback? onCurrentVideoPlay,
   }) async {
     if (prevIndex != -1) {
       final previousVideo = getVideoInIndex(prevIndex);
       if (previousVideo != null) {
         // We will not wait this
-        previousVideo.future.then((video) {
-          video.videoController.player.pause();
-        });
+
+        final VideoData video = await previousVideo.future;
+        unawaited(video.videoController.player.pause());
+
+        onPrevVideoPause?.call(video, prevIndex, currentIndex);
       }
     }
 
@@ -101,9 +112,9 @@ class ShortsController extends ValueNotifier<ShortsState>
 
     final currentVideo = getVideoInIndex(currentIndex);
     if (currentVideo != null) {
-      await currentVideo.future.then((video) {
-        unawaited(video.videoController.player.play());
-      });
+      final VideoData video = await currentVideo.future;
+      await video.videoController.player.play();
+      onCurrentVideoPlay?.call(video, prevIndex, currentIndex);
     }
   }
 
@@ -194,11 +205,9 @@ class ShortsController extends ValueNotifier<ShortsState>
                 _settings.startWithAutoplay && item.key == currentIndex;
 
             await player.open(Media(hostedVideoUrl), play: willPlay);
-            if (_settings.startVideoMuted) {
-              await player.setVolume(0);
-            } else {
-              await player.setVolume(100);
-            }
+
+            await player.setVolume(_settings.startVideoWithVolume);
+
             await player.setPlaylistMode(
               _settings.videosWillBeInLoop
                   ? PlaylistMode.loop
