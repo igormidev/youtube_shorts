@@ -1,3 +1,9 @@
+## 2.1.2
+*
+
+## 2.1.1
+* Fix audio bug on `YoutubeShortsHorizontalStoriesSection`
+
 ## 2.1.0
 * Added `notFocusedUiType` parameter to `YoutubeShortsHorizontalStoriesSection`
 * Added circular progress indicator in `YoutubeShortsHorizontalStoriesSection` widget

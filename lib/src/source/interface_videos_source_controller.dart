@@ -9,6 +9,7 @@ import 'package:easy_isolate_mixin/easy_isolate_mixin.dart'
 
 part 'impl_by_url_list.dart';
 part 'impl_from_channel_name.dart';
+part 'impl_from_multiple_channels_name.dart';
 
 abstract class VideosSourceController {
   final YoutubeExplode _yt = YoutubeExplode();
@@ -45,7 +46,14 @@ abstract class VideosSourceController {
   factory VideosSourceController.fromYoutubeChannel({
     required String channelName,
   }) {
-    return VideosSourceControllerYoutubeChannel(channelName: channelName);
+    return VideosSourceFromYoutubeChannel(channelName: channelName);
+  }
+
+  factory VideosSourceController.fromMultiYoutubeChannels({
+    required List<String> channelsName,
+  }) {
+    return VideosSourceControllerFromMultipleYoutubeChannels(
+        channelsName: channelsName);
   }
 
   Future<MuxedStreamInfo> getVideoInfoFromVideoModel(Video video) async {

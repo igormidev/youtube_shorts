@@ -142,8 +142,11 @@ class _YoutubeShortsHorizontalStoriesSectionState
           child: Builder(builder: (context) {
             return PageView.builder(
               controller: pageController,
-              onPageChanged: (int index) {
+              onPageChanged: (int index) async {
+                if (isShortsPageOpen == true) return;
+
                 selectedIndex.value = index;
+                await widget.controller.muteVideoWithIndex(index);
                 widget.controller.notifyCurrentIndex(index);
               },
               padEnds: false,
@@ -280,7 +283,10 @@ class _YoutubeShortsHorizontalStoriesSectionState
     );
   }
 
+  bool isShortsPageOpen = false;
+
   void _goToShortsPage(int index) async {
+    isShortsPageOpen = true;
     widget.controller.setVideoVolumeWithIndex(100, index);
 
     await Navigator.of(context).push(
@@ -304,6 +310,7 @@ class _YoutubeShortsHorizontalStoriesSectionState
       ),
     );
 
+    isShortsPageOpen = false;
     widget.controller.muteCurrentVideo();
   }
 }

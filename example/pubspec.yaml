@@ -13,8 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   youtube_shorts:
     path: '../'
-  enchanted_collection: ^1.2.0 
-  image_network: ^2.5.4+1 
+  enchanted_collection: ^1.2.0
 
 dev_dependencies:
   flutter_test:

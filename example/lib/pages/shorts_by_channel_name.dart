@@ -91,7 +91,10 @@ class _ShortsByChannelNameState extends State<ShortsByChannelName> {
 
 class ShortsByChannelNameDisplay extends StatefulWidget {
   final String channelName;
-  const ShortsByChannelNameDisplay({super.key, required this.channelName});
+  const ShortsByChannelNameDisplay({
+    super.key,
+    required this.channelName,
+  });
 
   @override
   State<ShortsByChannelNameDisplay> createState() =>

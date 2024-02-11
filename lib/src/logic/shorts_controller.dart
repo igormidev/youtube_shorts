@@ -19,7 +19,7 @@ class ShortsController extends ValueNotifier<ShortsState>
 
   /// * [youtubeVideoSourceController] controller can be one of two constructors:
   ///     1. [VideosSourceController.fromUrlList]
-  ///     2. [VideosSourceController.fromYoutubeChannel]
+  ///     2. [VideosSourceController.fromYoutubeChannelName]
   ///
   /// * If [startWithAutoplay] is true, the current focused video
   /// will start playing right after is dependencies are ready.

@@ -1,6 +1,6 @@
 part of 'interface_videos_source_controller.dart';
 
-class VideosSourceControllerYoutubeChannel extends VideosSourceController {
+class VideosSourceFromYoutubeChannel extends VideosSourceController {
   @override
   final Map<int, VideoStats> _videos = {};
 
@@ -11,7 +11,7 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
   int _lastIndexAdded = 0;
   final bool onlyVerticalVideos;
 
-  VideosSourceControllerYoutubeChannel({
+  VideosSourceFromYoutubeChannel({
     required String channelName,
     this.onlyVerticalVideos = true,
   }) : _channelName = channelName;
@@ -45,7 +45,7 @@ class VideosSourceControllerYoutubeChannel extends VideosSourceController {
       isLast,
       innerIndex,
     ) async {
-      final video = value;
+      final Video video = value;
       final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
 
       final VideoStats response = (videoData: video, hostedVideoInfo: info);
