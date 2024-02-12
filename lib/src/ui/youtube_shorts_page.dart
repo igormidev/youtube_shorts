@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:youtube_shorts/src/data/type_defs.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
 import 'package:youtube_shorts/src/ui/elements/video_data_loader_element.dart';
 import 'package:youtube_shorts/src/ui/elements/youtube_shorts_video_player.dart';

@@ -9,9 +9,9 @@ A vertical youtube shorts player. You can choose what shorts will be displayed b
 
 ### 🗂️ *Summary* 
 - [⦿ Configurations and native permissions](#configurations-and-native-permissions) 
-- [⦿ Basic how to use](#basic-how-to-use)
-  - [By list of youtube url's](#by-list-of-youtube-urls-example)
-  - [By channel name (example)](#by-channel-name-example) 
+- [⦿ Basic how to use](#--basic-how-to-use)
+  - [By list of youtube url's](#--by-list-of-youtube-urls-example)
+  - [By channel name (example)](#--by-channel-name-example) 
   - [By multiple channels names (example)](#by-multiple-channels-names-example) 
   - [Shorts page use (minimal example)](#shorts-page-use-minimal-example) 
 - [⦿ Video manipulation](#video-manipulation)

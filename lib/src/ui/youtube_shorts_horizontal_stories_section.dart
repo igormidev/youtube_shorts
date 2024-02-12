@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart' as media_kit show Video;
-import 'package:youtube_shorts/src/data/not_focused_ui_type.dart';
 import 'package:youtube_shorts/src/ui/elements/condition_to_update_value_listenable.dart';
 import 'package:youtube_shorts/src/ui/elements/default_widgets.dart';
 import 'package:youtube_shorts/src/ui/elements/video_completer_future_builder.dart';
