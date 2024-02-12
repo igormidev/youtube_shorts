@@ -30,6 +30,7 @@ class YoutubeHttpClient extends http.BaseClient {
     'sec-fetch-user': '?1',
     'sec-gpc': '1',
     'upgrade-insecure-requests': '1',
+    'Access-Control-Allow-Origin': '*',
   };
 
   /// Initialize an instance of [YoutubeHttpClient]

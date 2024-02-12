@@ -12,6 +12,7 @@ A vertical youtube shorts player. You can choose what shorts will be displayed b
 - [⦿ Basic how to use](#basic-how-to-use)
   - [By list of youtube url's](#by-list-of-youtube-urls-example)
   - [By channel name (example)](#by-channel-name-example) 
+  - [By multiple channels names (example)](#by-multiple-channels-names-example) 
   - [Shorts page use (minimal example)](#shorts-page-use-minimal-example) 
 - [⦿ Video manipulation](#video-manipulation)
   - [Controll the current/focussed player](#controll-the-currentfocussed-player)
@@ -62,7 +63,7 @@ if (/* Android 13 or higher. */) {
 # Basic how to use
 First, you will need to create a `VideosSourceController` that will controll all the video source. There are two constructor of the source controller. From a list of url or from the channel name. Examples are bellow:
 
-### - By list of youtube url's (example): 
+### - By list of youtube urls (example): 
 You can check a complete implementation of this constructor by [clicking here](https://github.com/igormidev/youtube_shorts/blob/master/example/lib/pages/shorts_by_video_url.dart). But bellow is a more short right to the point example:
 ```dart
 late final ShortsController controller;
@@ -85,6 +86,21 @@ void initState() {
 ```
 
 ### - By channel name (example): 
+Will display all videos of a channel with the `channelName`. 
+⚠️ Notice:
+The channel name **is not** necessarily the name you find with the '@' as a prefix.
+As an example: Searching fot the real madrid channel, you can see the url:
+https://www.youtube.com/@realmadrid
+That can make you think that 'realmadrid' is the channelName.
+Thats wrong. The find the correct youtube name you might search for the user url. It will be something like: **'/www.youtube.com/user/[channelName]'**.
+If you look for [https://www.youtube.com/user/realmadrid](https://www.youtube.com/user/realmadrid) link, you will see thats it a totally diferent channel that dosen't even have stories. The right user of real madrid channel contains 'cf' in the final.
+So the real user url of realmadrid is: [https://www.youtube.com/user/realmadridcf](https://www.youtube.com/user/realmadridcf).
+So we can see that the channel name is **realmadridcf**, `not` **realmadrid**.
+
+Take that in mind when using `VideosSourceController.fromYoutubeChannel` constructor.
+
+For displaying multiple channels shorts, use 
+
 You can check a complete implementation of this constructor by [clicking here](https://github.com/igormidev/youtube_shorts/blob/master/example/lib/pages/shorts_by_channel_name.dart). But bellow is a more short right to the point example:
 ```dart
 late final ShortsController controller;
@@ -100,13 +116,38 @@ void initState() {
 }
 ```
 
+### - By multiple channels names (example): 
+Simular to `VideosSourceController.fromYoutubeChannel`. Inclusive the channel name works the same as well. But instead of using only one channelName you will pass a list of channels name.
+
+⚠️ Important:
+Don't use `VideosSourceController.fromMultiYoutubeChannels` with a list with only one channel. It will work, but it won't be most optimized. The `VideosSourceController.fromYoutubeChannel` is specialized and more perfomatic for displaying only one channel shorts.
+
+You can check a complete implementation of this constructor by [clicking here](https://github.com/igormidev/youtube_shorts/blob/master/example/lib/pages/shorts_by_multile_channels_name.dart). But bellow is a more short right to the point example:
+```dart
+late final ShortsController controller;
+
+@override
+void initState() {
+  super.initState();
+  controller = ShortsController(
+    youtubeVideoSourceController: VideosSourceController.fromMultiYoutubeChannels(
+      channelsName: [
+        'fcbarcelona',
+        'realmadridcf',
+        'atleticodemadrid',
+      ],
+    ),
+  );
+}
+```
+
 ### Shorts page use (minimal example): 
 Now, we need too add the widget that shows the shorts and will use the controller we just created.
 
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
   );
 }
@@ -162,7 +203,7 @@ Some default controllers are in the player (time control, pause/play etc). Those
 @override
 Widget build(BuildContext context) {
   willHaveDefaultShortsControllers: false, // No more default controllers on video.
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
   );
 }
@@ -174,7 +215,7 @@ This is usefull if you want to display something like controllers or more.
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
     overlayWidgetBuilder: (
       int index,
@@ -197,7 +238,7 @@ You can display a widget that will be shown while the video is loading.
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller,
     loadingWidget: Center(
       child: MyCustomCoolLoadingIndicator(),
@@ -212,7 +253,7 @@ You will have a error and probably a stacktrace also (can be null).
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller, 
     errorWidget: (error, stackTrace) {
       return Center(
@@ -228,7 +269,7 @@ Widget build(BuildContext context) {
 ```dart
 @override
 Widget build(BuildContext context) {
-  return ShortsPage(
+  return YoutubeShortsPage(
     controller: controller, 
     videoBuilder: (
       int index,

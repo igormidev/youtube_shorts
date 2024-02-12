@@ -91,7 +91,10 @@ class _ShortsByChannelNameState extends State<ShortsByChannelName> {
 
 class ShortsByChannelNameDisplay extends StatefulWidget {
   final String channelName;
-  const ShortsByChannelNameDisplay({super.key, required this.channelName});
+  const ShortsByChannelNameDisplay({
+    super.key,
+    required this.channelName,
+  });
 
   @override
   State<ShortsByChannelNameDisplay> createState() =>
@@ -114,7 +117,7 @@ class _ShortsByChannelNameDisplayState
 
   @override
   Widget build(BuildContext context) {
-    return ShortsPage(
+    return YoutubeShortsPage(
       controller: controller,
     );
   }

@@ -1,24 +1,20 @@
 part of 'interface_videos_source_controller.dart';
 
-class VideosSourceFromYoutubeChannelName extends VideosSourceController {
+class VideosSourceControllerFromMultipleYoutubeChannelsName
+    extends VideosSourceController {
   @override
   final Map<int, VideoStats> _cacheVideo = {};
 
-  final String _channelName;
-
-  ChannelUploadsList? channelUploadsList;
-
   final bool onlyVerticalVideos;
 
-  VideosSourceFromYoutubeChannelName({
-    required String channelName,
+  VideosSourceControllerFromMultipleYoutubeChannelsName({
+    required List<String> channelsName,
     this.onlyVerticalVideos = true,
-  })  : _channelName = channelName,
-        _data = Completer() {
+  })  : _channelsName = channelsName,
+        _data = Map.fromEntries(channelsName
+            .map((value) => MapEntry(value, Completer<ChannelUploadsList>()))) {
     _obtainChannelsUploadList();
   }
-
-  final Completer<ChannelUploadsList> _data;
 
   @override
   Future<VideoStats?> getVideoByIndex(int index) async {
@@ -31,16 +27,23 @@ class VideosSourceFromYoutubeChannelName extends VideosSourceController {
     return _fetchNext(index);
   }
 
+  final List<String> _channelsName;
+  final Map<String, Completer<ChannelUploadsList>> _data;
+
+  int _channelInterationNumber = 0;
+
   /// The video interation number inside the channel interation
   int _videoInterationNumber = 0;
 
   Future<VideoStats?> _fetchNext(int index) async {
-    final ChannelUploadsList channelUploads = await _data.future;
+    final String channelName = _channelsName[_channelInterationNumber];
+    final ChannelUploadsList channelUploads =
+        (await _data[channelName]?.future)!;
 
     final isVideoInteractorNumberWithinChannelUploadRange =
         _videoInterationNumber < channelUploads.length;
 
-    final Video video;
+    final Video? video;
 
     if (isVideoInteractorNumberWithinChannelUploadRange) {
       video = channelUploads[_videoInterationNumber];
@@ -52,12 +55,19 @@ class VideosSourceFromYoutubeChannelName extends VideosSourceController {
       if (isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage) {
         video = channelUploads[_videoInterationNumber];
       } else {
-        return null;
+        video = null;
       }
     }
 
-    _videoInterationNumber++;
+    final isLastChannel = _channelInterationNumber == _channelsName.length - 1;
+    if (isLastChannel) {
+      _channelInterationNumber = 0;
+      _videoInterationNumber++;
+    } else {
+      _channelInterationNumber++;
+    }
 
+    if (video == null) return _fetchNext(index);
     final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
     final VideoStats response = (videoData: video, hostedVideoInfo: info);
 
@@ -66,13 +76,17 @@ class VideosSourceFromYoutubeChannelName extends VideosSourceController {
   }
 
   void _obtainChannelsUploadList() async {
-    final channel = await _yt.channels.getByUsername(_channelName);
-    final uploads = await _yt.channels.getUploadsFromPage(
-      channel.id,
-      videoSorting: VideoSorting.newest,
-      videoType: onlyVerticalVideos ? VideoType.shorts : VideoType.normal,
+    Future.wait(
+      _channelsName.map((e) async {
+        final channel = await _yt.channels.getByUsername(e);
+        final uploads = await _yt.channels.getUploadsFromPage(
+          channel.id,
+          // channel.id,
+          videoSorting: VideoSorting.newest,
+          videoType: onlyVerticalVideos ? VideoType.shorts : VideoType.normal,
+        );
+        _data[e]!.complete(uploads);
+      }),
     );
-
-    _data.complete(uploads);
   }
 }

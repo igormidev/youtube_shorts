@@ -40,6 +40,8 @@ class _ShortsByVideoUrlState extends State<ShortsByVideoUrl> {
     'https://www.youtube.com/shorts/ZCDU4O1jnTo', // 18
   ];
 
+  bool seeHorizontalVideos = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,7 +128,17 @@ class _ShortsByVideoUrlState extends State<ShortsByVideoUrl> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+          SwitchListTile.adaptive(
+            title: const Text('See horizontal videos widget'),
+            value: seeHorizontalVideos,
+            onChanged: (_) {
+              setState(() {
+                seeHorizontalVideos = !seeHorizontalVideos;
+              });
+            },
+          ),
+          const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {
               if (_textEditingController.text.isNotEmpty) {
@@ -140,7 +152,10 @@ class _ShortsByVideoUrlState extends State<ShortsByVideoUrl> {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) {
-                    return ShortsByVideoUrlDisplay(ids: ids.toList());
+                    return ShortsByVideoUrlDisplay(
+                      ids: ids.toList(),
+                      seeHorizontalVideos: seeHorizontalVideos,
+                    );
                   },
                 ),
               );
@@ -156,9 +171,11 @@ class _ShortsByVideoUrlState extends State<ShortsByVideoUrl> {
 
 class ShortsByVideoUrlDisplay extends StatefulWidget {
   final List<String> ids;
+  final bool seeHorizontalVideos;
   const ShortsByVideoUrlDisplay({
     super.key,
     required this.ids,
+    required this.seeHorizontalVideos,
   });
 
   @override
@@ -181,26 +198,37 @@ class _ShortsByVideoStateUrlDisplay extends State<ShortsByVideoUrlDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return ShortsPage(
-      controller: controller,
-      overlayWidgetBuilder: (
-        int index,
-        PageController pageController,
-        VideoController videoController,
-        Video videoData,
-        MuxedStreamInfo hostedVideoUrl,
-      ) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 100, left: 16),
-            child: CircleAvatar(
-              child: Text('$index'),
-            ),
+    if (widget.seeHorizontalVideos) {
+      return Scaffold(
+        body: Center(
+          child: YoutubeShortsHorizontalStoriesSection(
+            shortsPreviewHeight: 295,
+            controller: controller,
           ),
-        );
-      },
-    );
+        ),
+      );
+    } else {
+      return YoutubeShortsPage(
+        controller: controller,
+        overlayWidgetBuilder: (
+          int index,
+          PageController pageController,
+          VideoController videoController,
+          Video videoData,
+          MuxedStreamInfo hostedVideoUrl,
+        ) {
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 100, left: 16),
+              child: CircleAvatar(
+                child: Text('$index'),
+              ),
+            ),
+          );
+        },
+      );
+    }
   }
 
   @override
