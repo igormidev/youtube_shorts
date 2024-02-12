@@ -1,5 +1,8 @@
-## 2.1.2
-*
+## 3.0.0
+* Added new source `VideosSourceController.fromMultiYoutubeChannels`
+* Added new source `VideosSourceController.fromYoutubeChannelId`
+* Added new source `VideosSourceController.fromMultiYoutubeChannelsIds`
+* Added `onlyVerticalVideos` option to all sources (unless the **fromUrlList** source).
 
 ## 2.1.1
 * Fix audio bug on `YoutubeShortsHorizontalStoriesSection`

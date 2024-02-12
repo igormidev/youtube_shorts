@@ -43,21 +43,13 @@ class ShortsController extends ValueNotifier<ShortsState>
         _youtubeVideoInfoService = youtubeVideoSourceController,
         _lock = Lock(),
         super(const ShortsStateLoading()) {
-    if (youtubeVideoSourceController is VideosSourceControllerFromUrlList) {
-      prevIndex = -1;
-      currentIndex = -1;
-      notifyCurrentIndex(youtubeVideoSourceController.initialIndex);
-    } else {
-      prevIndex = -1;
-      currentIndex = -1;
-      notifyCurrentIndex(0);
-    }
+    notifyCurrentIndex(0);
   }
 
-  late int prevIndex;
+  int prevIndex = -1;
 
   @override
-  late int currentIndex;
+  int currentIndex = -1;
 
   /// Will not update the video that already are in state/loaded.
   ///

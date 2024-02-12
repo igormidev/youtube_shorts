@@ -1,13 +1,13 @@
 part of 'interface_videos_source_controller.dart';
 
-class VideosSourceControllerFromMultipleYoutubeChannels
+class VideosSourceControllerFromMultipleYoutubeChannelsName
     extends VideosSourceController {
   @override
   final Map<int, VideoStats> _cacheVideo = {};
 
   final bool onlyVerticalVideos;
 
-  VideosSourceControllerFromMultipleYoutubeChannels({
+  VideosSourceControllerFromMultipleYoutubeChannelsName({
     required List<String> channelsName,
     this.onlyVerticalVideos = true,
   })  : _channelsName = channelsName,

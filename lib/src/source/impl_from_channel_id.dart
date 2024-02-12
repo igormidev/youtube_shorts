@@ -1,19 +1,19 @@
 part of 'interface_videos_source_controller.dart';
 
-class VideosSourceFromYoutubeChannelName extends VideosSourceController {
+class VideosSourceFromYoutubeChannelId extends VideosSourceController {
   @override
   final Map<int, VideoStats> _cacheVideo = {};
 
-  final String _channelName;
+  final String _channelId;
 
   ChannelUploadsList? channelUploadsList;
 
   final bool onlyVerticalVideos;
 
-  VideosSourceFromYoutubeChannelName({
-    required String channelName,
+  VideosSourceFromYoutubeChannelId({
+    required String channelId,
     this.onlyVerticalVideos = true,
-  })  : _channelName = channelName,
+  })  : _channelId = channelId,
         _data = Completer() {
     _obtainChannelsUploadList();
   }
@@ -66,9 +66,8 @@ class VideosSourceFromYoutubeChannelName extends VideosSourceController {
   }
 
   void _obtainChannelsUploadList() async {
-    final channel = await _yt.channels.getByUsername(_channelName);
     final uploads = await _yt.channels.getUploadsFromPage(
-      channel.id,
+      ChannelId(_channelId),
       videoSorting: VideoSorting.newest,
       videoType: onlyVerticalVideos ? VideoType.shorts : VideoType.normal,
     );

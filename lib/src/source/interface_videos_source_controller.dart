@@ -7,9 +7,11 @@ import 'package:easy_isolate_mixin/easy_isolate_mixin.dart'
     if (dart.library.html) 'package:youtube_shorts/src/source/isolate_helper_mixin_web.dart'
     as easy_isolate_mixin;
 
-part 'impl_by_url_list.dart';
+part 'impl_from_url_list.dart';
 part 'impl_from_channel_name.dart';
 part 'impl_from_multiple_channels_name.dart';
+part 'impl_from_channel_id.dart';
+part 'impl_from_multiple_channels_ids.dart';
 
 abstract class VideosSourceController {
   final YoutubeExplode _yt = YoutubeExplode();
@@ -34,26 +36,63 @@ abstract class VideosSourceController {
   VideosSourceController();
 
   factory VideosSourceController.fromUrlList({
-    int initialIndex = 0,
     required List<String> videoIds,
   }) {
     return VideosSourceControllerFromUrlList(
-      initialIndex: initialIndex,
       videoIds: videoIds,
     );
   }
 
   factory VideosSourceController.fromYoutubeChannel({
+    /// The name of the channel.
     required String channelName,
+
+    /// If false, will bring all videos, even the horizontal/not shorts ones.
+    bool onlyVerticalVideos = true,
   }) {
-    return VideosSourceFromYoutubeChannel(channelName: channelName);
+    return VideosSourceFromYoutubeChannelName(
+      channelName: channelName,
+      onlyVerticalVideos: onlyVerticalVideos,
+    );
   }
 
   factory VideosSourceController.fromMultiYoutubeChannels({
+    /// The name of the channels.
     required List<String> channelsName,
+
+    /// If false, will bring all videos, even the horizontal/not shorts ones.
+    bool onlyVerticalVideos = true,
   }) {
-    return VideosSourceControllerFromMultipleYoutubeChannels(
-        channelsName: channelsName);
+    return VideosSourceControllerFromMultipleYoutubeChannelsName(
+      channelsName: channelsName,
+      onlyVerticalVideos: onlyVerticalVideos,
+    );
+  }
+
+  factory VideosSourceController.fromYoutubeChannelId({
+    /// The id of the target youtube channel
+    required String channelId,
+
+    /// If false, will bring all videos, even the horizontal/not shorts ones.
+    bool onlyVerticalVideos = true,
+  }) {
+    return VideosSourceFromYoutubeChannelId(
+      channelId: channelId,
+      onlyVerticalVideos: onlyVerticalVideos,
+    );
+  }
+
+  factory VideosSourceController.fromMultiYoutubeChannelsIds({
+    /// The ids of the target youtube channels
+    required List<String> channelsIds,
+
+    /// If false, will bring all videos, even the horizontal/not shorts ones.
+    bool onlyVerticalVideos = true,
+  }) {
+    return VideosSourceControllerFromMultipleYoutubeChannelsIds(
+      channelsIds: channelsIds,
+      onlyVerticalVideos: onlyVerticalVideos,
+    );
   }
 
   Future<MuxedStreamInfo> getVideoInfoFromVideoModel(Video video) async {

@@ -7,10 +7,7 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
 
   final Map<int, String> _videoIds;
 
-  final int initialIndex;
-
   VideosSourceControllerFromUrlList({
-    required this.initialIndex,
     required List<String> videoIds,
   }) : _videoIds = Map.fromEntries(videoIds
             .mapper((value, isFirst, isLast, index) => MapEntry(index, value)));
