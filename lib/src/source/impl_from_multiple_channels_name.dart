@@ -5,8 +5,11 @@ class VideosSourceControllerFromMultipleYoutubeChannels
   @override
   final Map<int, VideoStats> _cacheVideo = {};
 
+  final bool onlyVerticalVideos;
+
   VideosSourceControllerFromMultipleYoutubeChannels({
     required List<String> channelsName,
+    this.onlyVerticalVideos = true,
   })  : _channelsName = channelsName,
         _data = Map.fromEntries(channelsName
             .map((value) => MapEntry(value, Completer<ChannelUploadsList>()))) {
@@ -78,8 +81,9 @@ class VideosSourceControllerFromMultipleYoutubeChannels
         final channel = await _yt.channels.getByUsername(e);
         final uploads = await _yt.channels.getUploadsFromPage(
           channel.id,
+          // channel.id,
           videoSorting: VideoSorting.newest,
-          videoType: VideoType.shorts,
+          videoType: onlyVerticalVideos ? VideoType.shorts : VideoType.normal,
         );
         _data[e]!.complete(uploads);
       }),
