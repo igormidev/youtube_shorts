@@ -3,7 +3,7 @@ part of 'interface_videos_source_controller.dart';
 class VideosSourceControllerFromUrlList extends VideosSourceController
     with easy_isolate_mixin.IsolateHelperMixin {
   @override
-  final Map<int, VideoStats> _videos = {};
+  final Map<int, VideoStats> _cacheVideo = {};
 
   final Map<int, String> _videoIds;
 
@@ -18,7 +18,7 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
   @override
   Future<VideoStats?> getVideoByIndex(int index) async {
     return loadWithIsolate(() async {
-      final cacheVideo = _videos[index];
+      final cacheVideo = _cacheVideo[index];
       if (cacheVideo != null) return Future.value(cacheVideo);
 
       final videoid = _videoIds[index];
@@ -27,7 +27,7 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
       final video = await _yt.videos.get(videoid);
       final info = await getVideoInfoFromVideoModel(video);
       final VideoStats response = (videoData: video, hostedVideoInfo: info);
-      _videos[index] = response;
+      _cacheVideo[index] = response;
 
       return response;
     });

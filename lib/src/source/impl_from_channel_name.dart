@@ -2,7 +2,7 @@ part of 'interface_videos_source_controller.dart';
 
 class VideosSourceFromYoutubeChannel extends VideosSourceController {
   @override
-  final Map<int, VideoStats> _videos = {};
+  final Map<int, VideoStats> _cacheVideo = {};
 
   final String _channelName;
 
@@ -18,7 +18,7 @@ class VideosSourceFromYoutubeChannel extends VideosSourceController {
 
   @override
   Future<VideoStats?> getVideoByIndex(int index) async {
-    final cacheVideo = _videos[index];
+    final cacheVideo = _cacheVideo[index];
 
     if (cacheVideo != null) {
       return Future.value(cacheVideo);
@@ -51,7 +51,7 @@ class VideosSourceFromYoutubeChannel extends VideosSourceController {
       final VideoStats response = (videoData: video, hostedVideoInfo: info);
 
       final newCacheIndex = _lastIndexAdded + innerIndex;
-      _videos[newCacheIndex] = response;
+      _cacheVideo[newCacheIndex] = response;
 
       final isTargetVideo = innerIndex == index;
       if (isTargetVideo) {

@@ -21,9 +21,9 @@ abstract class VideosSourceController {
   /// map is more perfomatic for inserting and removing elements.
   ///
   /// The value is the info of the video.
-  abstract final Map<int, VideoStats> _videos;
+  abstract final Map<int, VideoStats> _cacheVideo;
 
-  int get currentMaxLenght => _videos.length;
+  int get currentMaxLenght => _cacheVideo.length;
 
   Future<VideoStats?> getVideoByIndex(int index);
 

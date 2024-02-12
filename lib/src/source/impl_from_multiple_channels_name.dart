@@ -3,66 +3,86 @@ part of 'interface_videos_source_controller.dart';
 class VideosSourceControllerFromMultipleYoutubeChannels
     extends VideosSourceController {
   @override
-  final Map<int, VideoStats> _videos = {};
-
-  final List<String> _channelsName;
+  final Map<int, VideoStats> _cacheVideo = {};
 
   VideosSourceControllerFromMultipleYoutubeChannels({
     required List<String> channelsName,
-  }) : _channelsName = channelsName {
-    outStream.listen((event) {
-      _videos[event.$1] = event.$2;
-    });
-    _fetchVideosCluster();
+  })  : _channelsName = channelsName,
+        _data = Map.fromEntries(channelsName
+            .map((value) => MapEntry(value, Completer<ChannelUploadsList>()))) {
+    _obtainChannelsUploadList();
   }
-
-  final StreamController<(int, VideoStats)> _videosFetcher =
-      StreamController<(int, VideoStats)>.broadcast();
-
-  StreamSink<(int, VideoStats)> get inStream => _videosFetcher.sink;
-  Stream<(int, VideoStats)> get outStream => _videosFetcher.stream;
-
-  /// The numbers of fetch this video already did.
-  int _clusterIndex = 0;
 
   @override
   Future<VideoStats?> getVideoByIndex(int index) async {
-    final cacheVideo = _videos[index];
+    final cacheVideo = _cacheVideo[index];
 
     if (cacheVideo != null) {
       return Future.value(cacheVideo);
     }
 
-    final res = await outStream.firstWhere((element) => element.$1 == index);
-    return res.$2;
+    return _fetchNext(index);
   }
 
-  @override
-  void dispose() {
-    _videosFetcher.close();
-  }
+  final List<String> _channelsName;
+  final Map<String, Completer<ChannelUploadsList>> _data;
 
-  void _fetchVideosCluster() async {
-    for (final String channelName in _channelsName) {
-      final channel = await _yt.channels.getByUsername(channelName);
+  int _channelInterationNumber = 0;
 
-      final ChannelUploadsList channelUploadsList =
-          await _yt.channels.getUploadsFromPage(
-        channel.id,
-        videoSorting: VideoSorting.newest,
-        videoType: VideoType.shorts,
-      );
+  /// The video interation number inside the channel interation
+  int _videoInterationNumber = 0;
 
-      for (final Video video in channelUploadsList) {
-        final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
-        final VideoStats response = (videoData: video, hostedVideoInfo: info);
+  Future<VideoStats?> _fetchNext(int index) async {
+    final String channelName = _channelsName[_channelInterationNumber];
+    final ChannelUploadsList channelUploads =
+        (await _data[channelName]?.future)!;
 
-        print('Adding video ${_videos.length} to the stream');
-        inStream.add((_videos.length, response));
+    final isVideoInteractorNumberWithinChannelUploadRange =
+        _videoInterationNumber < channelUploads.length;
+
+    final Video? video;
+
+    if (isVideoInteractorNumberWithinChannelUploadRange) {
+      video = channelUploads[_videoInterationNumber];
+    } else {
+      await channelUploads.nextPage();
+
+      final isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage =
+          _videoInterationNumber < channelUploads.length;
+      if (isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage) {
+        video = channelUploads[_videoInterationNumber];
+      } else {
+        video = null;
       }
     }
 
-    print('Finishing adding videos to the stream');
-    _clusterIndex++;
+    final isLastChannel = _channelInterationNumber == _channelsName.length - 1;
+    if (isLastChannel) {
+      _channelInterationNumber = 0;
+      _videoInterationNumber++;
+    } else {
+      _channelInterationNumber++;
+    }
+
+    if (video == null) return _fetchNext(index);
+    final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
+    final VideoStats response = (videoData: video, hostedVideoInfo: info);
+
+    _cacheVideo[index] = response;
+    return response;
+  }
+
+  void _obtainChannelsUploadList() async {
+    Future.wait(
+      _channelsName.map((e) async {
+        final channel = await _yt.channels.getByUsername(e);
+        final uploads = await _yt.channels.getUploadsFromPage(
+          channel.id,
+          videoSorting: VideoSorting.newest,
+          videoType: VideoType.shorts,
+        );
+        _data[e]!.complete(uploads);
+      }),
+    );
   }
 }
