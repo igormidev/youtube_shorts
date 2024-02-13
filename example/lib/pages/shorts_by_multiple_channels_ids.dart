@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
 
-class ShortsByMultileChannelsName extends StatefulWidget {
-  const ShortsByMultileChannelsName({super.key});
+class ShortsByMultileChannelsIds extends StatefulWidget {
+  const ShortsByMultileChannelsIds({super.key});
 
   @override
-  State<ShortsByMultileChannelsName> createState() =>
-      _ShortsByMultileChannelsNameState();
+  State<ShortsByMultileChannelsIds> createState() =>
+      _ShortsByMultileChannelsIdsState();
 }
 
-class _ShortsByMultileChannelsNameState
-    extends State<ShortsByMultileChannelsName> {
+class _ShortsByMultileChannelsIdsState
+    extends State<ShortsByMultileChannelsIds> {
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
 
   final TextEditingController _textEditingController = TextEditingController();
 
-  List<String> links = [
-    'fcbarcelona',
-    'realmadridcf',
-    'atleticodemadrid',
+  List<String> ids = [
+    'UC14UlmYlSNiQCBe9Eookf_A', // Barcelona
+    'UCWV3obpZVGgJ3j9FVhEjF2Q', // Real Madrid
+    'UCuzKFwdh7z2GHcIOX_tXgxA', // Atlético de Madrid
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('By channels names'),
+        title: const Text('By channel ids'),
         actions: [
           IconButton(
             onPressed: () {
@@ -41,7 +41,7 @@ class _ShortsByMultileChannelsNameState
           children: [
             const SizedBox(height: 8),
             Text(
-              'Type the channel names you want\nto play in stories',
+              'Type the channel ids of the channels you want\nto play in stories',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -50,14 +50,14 @@ class _ShortsByMultileChannelsNameState
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: links.length,
+                itemCount: ids.length,
                 itemBuilder: (context, index) {
-                  final String link = links[index];
+                  final String link = ids[index];
                   return ListTile(
                     title: Text(link),
                     trailing: IconButton(
                       onPressed: () {
-                        links.remove(link);
+                        ids.remove(link);
                         setState(() {});
                       },
                       icon: const Icon(Icons.delete),
@@ -82,14 +82,13 @@ class _ShortsByMultileChannelsNameState
                   },
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
-                    labelText: 'Type the youtube channel name',
-                    // labelText: 'Type the youtube channel name or id',
+                    labelText: 'Type the youtube channel id',
                     suffixIcon: IconButton(
                       onPressed: () {
                         final isValid =
                             _formkey.currentState?.validate() == true;
                         if (isValid) {
-                          links.add(_textEditingController.text);
+                          ids.add(_textEditingController.text);
                           setState(() {});
                         }
                       },
@@ -102,13 +101,13 @@ class _ShortsByMultileChannelsNameState
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
-                if (links.isEmpty) return;
+                if (ids.isEmpty) return;
 
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) {
-                      return ShortsByMultipleChannelNameDisplay(
-                        channelsName: links,
+                      return ShortsByMultipleChannelIdsDisplay(
+                        channelsIds: ids,
                       );
                     },
                   ),
@@ -124,30 +123,33 @@ class _ShortsByMultileChannelsNameState
   }
 }
 
-class ShortsByMultipleChannelNameDisplay extends StatefulWidget {
-  final List<String> channelsName;
-  const ShortsByMultipleChannelNameDisplay({
+class ShortsByMultipleChannelIdsDisplay extends StatefulWidget {
+  final List<String> channelsIds;
+  const ShortsByMultipleChannelIdsDisplay({
     super.key,
-    required this.channelsName,
+    required this.channelsIds,
   });
 
   @override
-  State<ShortsByMultipleChannelNameDisplay> createState() =>
-      _ShortsByMultipleChannelNameDisplayState();
+  State<ShortsByMultipleChannelIdsDisplay> createState() =>
+      _ShortsByMultipleChannelIdsDisplayState();
 }
 
-class _ShortsByMultipleChannelNameDisplayState
-    extends State<ShortsByMultipleChannelNameDisplay> {
+class _ShortsByMultipleChannelIdsDisplayState
+    extends State<ShortsByMultipleChannelIdsDisplay> {
   late final ShortsController controller;
 
   @override
   void initState() {
     super.initState();
     controller = ShortsController(
-        youtubeVideoSourceController:
-            VideosSourceController.fromMultiYoutubeChannels(
-      channelsName: widget.channelsName,
-    ));
+      youtubeVideoSourceController:
+          VideosSourceController.fromMultiYoutubeChannelsIds(
+        channelsIds: getMockedChannelsIds(),
+        // channelsIds: widget.channelsIds,
+      ),
+      // )..printListOfMockedChannels(),
+    );
   }
 
   @override
@@ -163,3 +165,28 @@ class _ShortsByMultipleChannelNameDisplayState
     super.dispose();
   }
 }
+
+final laLigaTeams = {
+  'Alavés': 'UC5yHOZPDde9RWodH5bn4QgA',
+  'Athletic Bilbao': 'UCUiLE_NqFKarAXFhhmXiIFA',
+  'Real Madrid': 'UCWV3obpZVGgJ3j9FVhEjF2Q',
+  'Almería': 'UCmEvpX91oYzK06KqopnGvjA',
+  'Barcelona': 'UC14UlmYlSNiQCBe9Eookf_A',
+  'Cádiz': 'UCok4Ffi59YJWyOROnpCk2BQ',
+  'Celta de Vigo': 'UCCJLVZYqRb_85b2Flpg04cg',
+  'Las Palmas': 'UCVmpXogwdZ48VRUIR56fNgQ',
+  'Girona': 'UC6x5gKUZpXuKDujmaHc3Xhg',
+  'Mallorca': 'UCZ4KmAXw0xsSbTovdqB736A',
+  'Granada': 'UC7QSPSHjp6E8K1fjOvMzNVg',
+  'Sevilla': 'UCLy9lmj_0cqffXUzbGHNmYA',
+  'Real Betis': 'UCeB7JZwcar2fVoK2w2f9OwA',
+  'Osasuna': 'UC2JTagDPIChbcEeiLjypuYA',
+  'Real Sociedad': 'UCfeqewEKWQ8CXY8OiXoMxxw',
+  'Rayo Vallecano': 'UCUTkI-vFAO7BjfpqIDFO8rQ',
+  'Valencia': 'UCgvyo5x49J8ht5H9imKfxMQ',
+  'Villareal': 'UC0MLWyQ0L7uEZY8wbkDSTkw',
+  'Atlético Madrid': 'UCuzKFwdh7z2GHcIOX_tXgxA',
+  'Getafe': 'UC34fUqq4rxJc0cj5Hart0zQ',
+};
+
+final Map<String, Map<String, String>> spanishMock = {};

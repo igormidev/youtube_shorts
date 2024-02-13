@@ -1,3 +1,9 @@
+## 3.1.0
+* Better resiliance to not valid channels (that don't contain shorts)
+
+## 3.0.1
+* Source complete video model (before was an incomplete model)
+
 ## 3.0.0
 * Added new source `VideosSourceController.fromMultiYoutubeChannels`
 * Added new source `VideosSourceController.fromYoutubeChannelId`

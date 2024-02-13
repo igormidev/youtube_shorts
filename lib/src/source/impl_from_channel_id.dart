@@ -43,14 +43,16 @@ class VideosSourceFromYoutubeChannelId extends VideosSourceController {
     final Video video;
 
     if (isVideoInteractorNumberWithinChannelUploadRange) {
-      video = channelUploads[_videoInterationNumber];
+      final channelUploadsVideo = channelUploads[_videoInterationNumber];
+      video = await _yt.videos.get(channelUploadsVideo.id.value);
     } else {
       await channelUploads.nextPage();
 
       final isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage =
           _videoInterationNumber < channelUploads.length;
       if (isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage) {
-        video = channelUploads[_videoInterationNumber];
+        final channelUploadsVideo = channelUploads[_videoInterationNumber];
+        video = await _yt.videos.get(channelUploadsVideo.id.value);
       } else {
         return null;
       }

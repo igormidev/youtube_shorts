@@ -37,25 +37,45 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
 
   Future<VideoStats?> _fetchNext(int index) async {
     final String channelId = _channelsIds[_channelInterationNumber];
-    final ChannelUploadsList channelUploads = (await _data[channelId]?.future)!;
+    final ChannelUploadsList channelUploads;
+
+    try {
+      channelUploads = (await _data[channelId]?.future)!;
+    } catch (_) {
+      final isLastChannel = _channelInterationNumber == _channelsIds.length - 1;
+      if (isLastChannel) {
+        _channelInterationNumber = 0;
+        _videoInterationNumber++;
+      } else {
+        _channelInterationNumber++;
+      }
+      return _fetchNext(index);
+    }
 
     final isVideoInteractorNumberWithinChannelUploadRange =
         _videoInterationNumber < channelUploads.length;
 
-    final Video? video;
+    Video? video;
 
-    if (isVideoInteractorNumberWithinChannelUploadRange) {
-      video = channelUploads[_videoInterationNumber];
-    } else {
-      await channelUploads.nextPage();
-
-      final isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage =
-          _videoInterationNumber < channelUploads.length;
-      if (isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage) {
-        video = channelUploads[_videoInterationNumber];
+    try {
+      if (isVideoInteractorNumberWithinChannelUploadRange) {
+        final channelUploadsVideo = channelUploads[_videoInterationNumber];
+        video = await _yt.videos.get(channelUploadsVideo.id.value);
       } else {
-        video = null;
+        await channelUploads.nextPage();
+
+        final isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage =
+            _videoInterationNumber < channelUploads.length;
+
+        if (isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage) {
+          final channelUploadsVideo = channelUploads[_videoInterationNumber];
+          video = await _yt.videos.get(channelUploadsVideo.id.value);
+        } else {
+          video = null;
+        }
       }
+    } catch (_) {
+      video = null;
     }
 
     final isLastChannel = _channelInterationNumber == _channelsIds.length - 1;
@@ -77,12 +97,27 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
   void _obtainChannelsUploadList() async {
     Future.wait(
       _channelsIds.map((String id) async {
-        final uploads = await _yt.channels.getUploadsFromPage(
+        await _yt.channels
+            .getUploadsFromPage(
           ChannelId(id),
           videoSorting: VideoSorting.newest,
           videoType: onlyVerticalVideos ? VideoType.shorts : VideoType.normal,
-        );
-        _data[id]!.complete(uploads);
+        )
+            .then((uploads) {
+          _data[id]!.complete(uploads);
+        }).onError((error, stackTrace) {
+          if (error is FatalFailureException) {
+            print('FatalFailureException on id $id:\n$error');
+            _data[id]!.completeError(error, stackTrace);
+            throw error;
+          }
+          final exception = error ??
+              Exception(
+                'Unknown error. Please check $id',
+              );
+          _data[id]!.completeError(exception, stackTrace);
+          throw exception;
+        });
       }),
     );
   }

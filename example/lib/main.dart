@@ -1,5 +1,6 @@
 import 'package:example/pages/shorts_by_channel_name.dart';
 import 'package:example/pages/shorts_by_multile_channels_name.dart';
+import 'package:example/pages/shorts_by_multiple_channels_ids.dart';
 import 'package:example/pages/shorts_by_video_url.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_shorts/youtube_shorts.dart';
@@ -99,6 +100,19 @@ class SelectionPage extends StatelessWidget {
                 );
               },
               child: const Text('By youtube multiple channel name'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const ShortsByMultileChannelsIds();
+                    },
+                  ),
+                );
+              },
+              child: const Text('By youtube multiple channel ids'),
             ),
           ],
         ),

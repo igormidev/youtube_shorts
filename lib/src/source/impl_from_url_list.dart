@@ -21,8 +21,8 @@ class VideosSourceControllerFromUrlList extends VideosSourceController
       final videoid = _videoIds[index];
       if (videoid == null) return null;
 
-      final video = await _yt.videos.get(videoid);
-      final info = await getVideoInfoFromVideoModel(video);
+      final Video video = await _yt.videos.get(videoid);
+      final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
       final VideoStats response = (videoData: video, hostedVideoInfo: info);
       _cacheVideo[index] = response;
 
