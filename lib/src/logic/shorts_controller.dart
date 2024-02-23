@@ -153,7 +153,9 @@ class ShortsController extends ValueNotifier<ShortsState>
         // Now, the new list is: [4, 5, 6, 7, 1, 2, 3]
         final targetIndex =
             focusedItems.indexWhere((e) => e.key == currentIndex);
+
         List<MapEntry<int, VideoDataCompleter?>>? ordoredList;
+
         if (targetIndex != -1) {
           final prevCurrentIndex = focusedItems.sublist(0, targetIndex);
           final currentIndexAndPosItems = focusedItems.sublist(targetIndex);

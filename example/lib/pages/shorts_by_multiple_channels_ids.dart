@@ -145,10 +145,8 @@ class _ShortsByMultipleChannelIdsDisplayState
     controller = ShortsController(
       youtubeVideoSourceController:
           VideosSourceController.fromMultiYoutubeChannelsIds(
-        channelsIds: getMockedChannelsIds(),
-        // channelsIds: widget.channelsIds,
+        channelsIds: getMockedChannelIds(),
       ),
-      // )..printListOfMockedChannels(),
     );
   }
 
@@ -165,28 +163,3 @@ class _ShortsByMultipleChannelIdsDisplayState
     super.dispose();
   }
 }
-
-final laLigaTeams = {
-  'Alavés': 'UC5yHOZPDde9RWodH5bn4QgA',
-  'Athletic Bilbao': 'UCUiLE_NqFKarAXFhhmXiIFA',
-  'Real Madrid': 'UCWV3obpZVGgJ3j9FVhEjF2Q',
-  'Almería': 'UCmEvpX91oYzK06KqopnGvjA',
-  'Barcelona': 'UC14UlmYlSNiQCBe9Eookf_A',
-  'Cádiz': 'UCok4Ffi59YJWyOROnpCk2BQ',
-  'Celta de Vigo': 'UCCJLVZYqRb_85b2Flpg04cg',
-  'Las Palmas': 'UCVmpXogwdZ48VRUIR56fNgQ',
-  'Girona': 'UC6x5gKUZpXuKDujmaHc3Xhg',
-  'Mallorca': 'UCZ4KmAXw0xsSbTovdqB736A',
-  'Granada': 'UC7QSPSHjp6E8K1fjOvMzNVg',
-  'Sevilla': 'UCLy9lmj_0cqffXUzbGHNmYA',
-  'Real Betis': 'UCeB7JZwcar2fVoK2w2f9OwA',
-  'Osasuna': 'UC2JTagDPIChbcEeiLjypuYA',
-  'Real Sociedad': 'UCfeqewEKWQ8CXY8OiXoMxxw',
-  'Rayo Vallecano': 'UCUTkI-vFAO7BjfpqIDFO8rQ',
-  'Valencia': 'UCgvyo5x49J8ht5H9imKfxMQ',
-  'Villareal': 'UC0MLWyQ0L7uEZY8wbkDSTkw',
-  'Atlético Madrid': 'UCuzKFwdh7z2GHcIOX_tXgxA',
-  'Getafe': 'UC34fUqq4rxJc0cj5Hart0zQ',
-};
-
-final Map<String, Map<String, String>> spanishMock = {};

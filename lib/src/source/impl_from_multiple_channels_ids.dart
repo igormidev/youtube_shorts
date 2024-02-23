@@ -1,7 +1,8 @@
 part of 'interface_videos_source_controller.dart';
 
 class VideosSourceControllerFromMultipleYoutubeChannelsIds
-    extends VideosSourceController {
+    extends VideosSourceController
+    with easy_isolate_mixin.IsolateHelperMixin, IsolateMixinHelpers {
   @override
   final Map<int, VideoStats> _cacheVideo = {};
 
@@ -56,11 +57,11 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
         _videoInterationNumber < channelUploads.length;
 
     Video? video;
-
     try {
       if (isVideoInteractorNumberWithinChannelUploadRange) {
         final channelUploadsVideo = channelUploads[_videoInterationNumber];
-        video = await _yt.videos.get(channelUploadsVideo.id.value);
+        final String videoId = channelUploadsVideo.id.value;
+        video = await getVideo(videoId);
       } else {
         await channelUploads.nextPage();
 
@@ -69,7 +70,8 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
 
         if (isVideoInteractorNumberWithinChannelUploadRangeAfterFetchingNewPage) {
           final channelUploadsVideo = channelUploads[_videoInterationNumber];
-          video = await _yt.videos.get(channelUploadsVideo.id.value);
+          final String videoId = channelUploadsVideo.id.value;
+          video = await getVideo(videoId);
         } else {
           video = null;
         }
@@ -87,7 +89,16 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
     }
 
     if (video == null) return _fetchNext(index);
-    final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
+
+    final MuxedStreamInfo info;
+    try {
+      info = await getMuxedInfo(video.id.value);
+    } catch (error) {
+      print(
+        'FatalFailureException on channelName ${video.id.value}:\n$error\nCheck if the channel exists and if it has videos.',
+      );
+      return _fetchNext(index);
+    }
     final VideoStats response = (videoData: video, hostedVideoInfo: info);
 
     _cacheVideo[index] = response;
@@ -95,30 +106,27 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
   }
 
   void _obtainChannelsUploadList() async {
-    Future.wait(
-      _channelsIds.map((String id) async {
-        await _yt.channels
-            .getUploadsFromPage(
+    for (final id in _channelsIds) {
+      try {
+        final uploads = _yt.channels.getUploadsFromPage(
           ChannelId(id),
           videoSorting: VideoSorting.newest,
           videoType: onlyVerticalVideos ? VideoType.shorts : VideoType.normal,
-        )
-            .then((uploads) {
-          _data[id]!.complete(uploads);
-        }).onError((error, stackTrace) {
-          if (error is FatalFailureException) {
-            print('FatalFailureException on id $id:\n$error');
-            _data[id]!.completeError(error, stackTrace);
-            throw error;
-          }
-          final exception = error ??
-              Exception(
-                'Unknown error. Please check $id',
-              );
-          _data[id]!.completeError(exception, stackTrace);
-          throw exception;
-        });
-      }),
-    );
+        );
+
+        _data[id]!.complete(uploads);
+      } catch (error, stackTrace) {
+        if (error is FatalFailureException) {
+          print(
+            'FatalFailureException on channelName $id:\n$error\nCheck if the channel exists and if it has videos.',
+          );
+        } else {
+          print('Error on channelName $id:\n$error\n$stackTrace');
+        }
+        final exception = error;
+        _data[id]!.completeError(exception, stackTrace);
+        rethrow;
+      }
+    }
   }
 }

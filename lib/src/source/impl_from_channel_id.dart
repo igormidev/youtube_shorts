@@ -60,7 +60,8 @@ class VideosSourceFromYoutubeChannelId extends VideosSourceController {
 
     _videoInterationNumber++;
 
-    final MuxedStreamInfo info = await getVideoInfoFromVideoModel(video);
+    final MuxedStreamInfo info =
+        await getVideoInfoFromVideoModel(video.id.value);
     final VideoStats response = (videoData: video, hostedVideoInfo: info);
 
     _cacheVideo[index] = response;
