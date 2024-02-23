@@ -21,16 +21,6 @@ class ShortsStateLoading extends ShortsState {
 class ShortsStateWithData extends ShortsState {
   // The index and the video controller of the currently playing video.
   final Map<int, ShortsData> videos;
-
-  int get maxLenght {
-    final res = videos.keys.reduce(
-      (value, element) {
-        return value > element ? value : element;
-      },
-    );
-    return res + 1;
-  }
-
   const ShortsStateWithData({
     required this.videos,
   });

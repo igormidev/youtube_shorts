@@ -162,17 +162,14 @@ class _YoutubeShortsHorizontalStoriesSectionState
                   emptyWidget: widget.loadingWidget ??
                       const YoutubeShortsDefaultLoadingWidget(),
                   builder: (context) {
-                    final ShortsStateWithData shortsState =
-                        widget.controller.value as ShortsStateWithData;
-
-                    final isPlaceHolderPadding = index >= shortsState.maxLenght;
+                    final int maxLenght = widget.controller.maxLenght;
+                    final isPlaceHolderPadding = index >= maxLenght;
                     if (isPlaceHolderPadding) {
                       return const SizedBox.shrink();
                     }
 
                     final bool isSelectedIndex =
                         widget.controller.currentIndex == index;
-                    final int maxLenght = shortsState.maxLenght;
                     final bool isIndexBellowMaxLenght = index >= maxLenght;
 
                     if (!isSelectedIndex && isIndexBellowMaxLenght) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -31,7 +32,7 @@ class ShortsController extends ValueNotifier<ShortsState>
   /// * [VideoControllerConfiguration] is the configuration of [VideoController]
   /// of [media_kit](https://pub.dev/packages/media_kit).
   ShortsController({
-    this.indexsWhereWillContainAds = const [],
+    List<int> indexsWhereWillContainAds = const [],
     required VideosSourceController youtubeVideoSourceController,
     ShortsControllerSettings settings = const ShortsControllerSettings(),
     bool videosWillBeInLoop = true,
@@ -43,11 +44,11 @@ class ShortsController extends ValueNotifier<ShortsState>
             defaultVideoControllerConfiguration,
         _youtubeVideoInfoService = youtubeVideoSourceController,
         _lock = Lock(),
+        indexsWhereWillContainAds =
+            UnmodifiableListView(indexsWhereWillContainAds),
         super(const ShortsStateLoading()) {
     notifyCurrentIndex(0);
   }
-
-  final List<int> indexsWhereWillContainAds;
 
   int prevIndex = -1;
 
@@ -115,12 +116,17 @@ class ShortsController extends ValueNotifier<ShortsState>
     }
   }
 
-  Map<int, int?> indexToSource = {
+  int get maxLenght => _indexToSource.length - 1;
+  final UnmodifiableListView<int> indexsWhereWillContainAds;
+  final Map<int, int?> _indexToSource = {};
+
+  /*
+    0: 0,
     1: 1,
     2: 2,
     3: null,
     4: 3,
-  };
+  */
 
   /// Will load the previus 3 and next 3 videos.
   Future<void> _preloadVideos() async {
@@ -179,25 +185,38 @@ class ShortsController extends ValueNotifier<ShortsState>
         // Load the videos that are not in state
         for (final item in ordoredList ?? focusedItems) {
           if (item.key.isNegative) continue;
+          if (_indexToSource.containsKey(item.key) == false) {
+            final isAdIndex = indexsWhereWillContainAds.contains(item.key);
+
+            if (isAdIndex) {
+              final withoutNullValues = _indexToSource.values.whereType<int>();
+              _indexToSource[item.key] = withoutNullValues.length;
+            } else {
+              _indexToSource[item.key] = item.key;
+            }
+          }
+
+          final int? index = _indexToSource[item.key];
+          if (index == null) continue;
 
           if (item.value == null) {
             final VideoStats? video =
                 await _youtubeVideoInfoService.getVideoByIndex(
-              item.key,
+              index,
             );
 
             if (video == null) continue;
 
             if (currentState == null) {
               currentState = ShortsStateWithData(videos: {
-                item.key: ShortsVideoData(video: VideoDataCompleter()),
+                index: ShortsVideoData(video: VideoDataCompleter()),
               });
 
               value = currentState;
             } else {
               final newState = ShortsStateWithData(videos: {
                 ...currentState.videos,
-                item.key: ShortsVideoData(video: VideoDataCompleter()),
+                index: ShortsVideoData(video: VideoDataCompleter()),
               });
               currentState = newState;
               value = newState;
@@ -208,7 +227,7 @@ class ShortsController extends ValueNotifier<ShortsState>
                 Media.normalizeURI(video.hostedVideoInfo.url.toString());
 
             final willPlay =
-                _settings.startWithAutoplay && item.key == currentIndex;
+                _settings.startWithAutoplay && index == currentIndex;
 
             await player.open(Media(hostedVideoUrl), play: willPlay);
 
@@ -219,7 +238,7 @@ class ShortsController extends ValueNotifier<ShortsState>
                   ? PlaylistMode.loop
                   : PlaylistMode.none,
             );
-            final state = currentState.videos[item.key];
+            final state = currentState.videos[index];
 
             if (state is ShortsVideoData) {
               state.video.complete((
