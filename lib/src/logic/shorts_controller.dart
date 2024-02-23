@@ -116,7 +116,11 @@ class ShortsController extends ValueNotifier<ShortsState>
     }
   }
 
-  int get maxLenght => _indexToSource.length - 1;
+  int get maxLenght {
+    print('maxLenght: ${_indexToSource.length - 1}');
+    return _indexToSource.length;
+  }
+
   final UnmodifiableListView<int> indexsWhereWillContainAds;
   final Map<int, int?> _indexToSource = {};
 
@@ -184,22 +188,46 @@ class ShortsController extends ValueNotifier<ShortsState>
         }
         // Load the videos that are not in state
         for (final item in ordoredList ?? focusedItems) {
+          print(
+            '$currentIndex lets see itemKey; ${item.key} == ${ordoredList?.length}',
+          );
+          print('_indexToSource = $_indexToSource');
           if (item.key.isNegative) continue;
+          final int? index;
           if (_indexToSource.containsKey(item.key) == false) {
             final isAdIndex = indexsWhereWillContainAds.contains(item.key);
-
             if (isAdIndex) {
-              final withoutNullValues = _indexToSource.values.whereType<int>();
-              _indexToSource[item.key] = withoutNullValues.length;
+              _indexToSource[item.key] = null;
+              index = null;
+              print('${item.key} isAd: true => ${_indexToSource[item.key]}');
             } else {
-              _indexToSource[item.key] = item.key;
+              final withoutNullValues = _indexToSource.values.whereType<int>();
+              final int sourceLenght = withoutNullValues.length;
+              _indexToSource[item.key] = sourceLenght;
+              index = sourceLenght;
+              print('${item.key} isAd: false => ${_indexToSource[item.key]}');
             }
+          } else {
+            index = _indexToSource[item.key];
+            print('${item.key} isAd: null $_indexToSource');
           }
 
-          final int? index = _indexToSource[item.key];
-          if (index == null) continue;
+          if (index == null) {
+            if (currentState == null) {
+              currentState = ShortsStateWithData(videos: {
+                item.key: ShortsAdsData(),
+              });
 
-          if (item.value == null) {
+              value = currentState;
+            } else {
+              final newState = ShortsStateWithData(videos: {
+                ...currentState.videos,
+                item.key: ShortsAdsData(),
+              });
+              currentState = newState;
+              value = newState;
+            }
+          } else if (item.value == null) {
             final VideoStats? video =
                 await _youtubeVideoInfoService.getVideoByIndex(
               index,
@@ -209,14 +237,14 @@ class ShortsController extends ValueNotifier<ShortsState>
 
             if (currentState == null) {
               currentState = ShortsStateWithData(videos: {
-                index: ShortsVideoData(video: VideoDataCompleter()),
+                item.key: ShortsVideoData(video: VideoDataCompleter()),
               });
 
               value = currentState;
             } else {
               final newState = ShortsStateWithData(videos: {
                 ...currentState.videos,
-                index: ShortsVideoData(video: VideoDataCompleter()),
+                item.key: ShortsVideoData(video: VideoDataCompleter()),
               });
               currentState = newState;
               value = newState;

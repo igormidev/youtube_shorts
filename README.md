@@ -164,8 +164,46 @@ void dispose() {
 
 Don't forget to check out the examples of ["by url list"](https://github.com/igormidev/youtube_shorts/blob/master/example/lib/pages/shorts_by_video_url.dart) and ["by channel name"](https://github.com/igormidev/youtube_shorts/blob/master/example/lib/pages/shorts_by_channel_name.dart) implementations.
 
+# Showing ads in the middle of feed
+## 1. Add what indexes will contain ads
+If you wan't to display ads during the user slide flow.
+In controller, in the parametter named `indexsWhereWillContainAds` you can pass in what indexes you wan't to contain ads. In the example bellow, the user will see ads in the third content he scrolled down. And again in the content with index 8. After that, the user will no longer more see content.
+```dart
+ShortsController(
+  indexsWhereWillContainAds: [3, 8],
+  youtubeVideoSourceController:
+      VideosSourceController.fromMultiYoutubeChannelsIds(
+    channelsIds: getMockedChannelIds(),
+  ),
+),
+```
 
-## Video manipulation
+## 2. Create the ads builder
+> Note: It's called ads builder but you can 
+```dart
+YoutubeShortsPage(
+  controller: controller,
+
+  /// Add this parameter:
+  adsWidgetBuilder: (index, pageController) {
+    return Container(
+      color: Colors.red,
+      child: Center(
+        child: Text(
+          'Ad',
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+        ),
+      ),
+    );
+  },
+)
+```
+
+
+# Video manipulation
 
 ### Controll the current/focussed player
 You can manipulate the player of the current video that is *focused* (in screen).

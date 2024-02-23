@@ -143,6 +143,7 @@ class _ShortsByMultipleChannelIdsDisplayState
   void initState() {
     super.initState();
     controller = ShortsController(
+      indexsWhereWillContainAds: [3, 8],
       youtubeVideoSourceController:
           VideosSourceController.fromMultiYoutubeChannelsIds(
         channelsIds: getMockedChannelIds(),
@@ -154,6 +155,20 @@ class _ShortsByMultipleChannelIdsDisplayState
   Widget build(BuildContext context) {
     return YoutubeShortsPage(
       controller: controller,
+      adsWidgetBuilder: (index, pageController) {
+        return Container(
+          color: Colors.red,
+          child: Center(
+            child: Text(
+              'Ad',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+            ),
+          ),
+        );
+      },
     );
   }
 
