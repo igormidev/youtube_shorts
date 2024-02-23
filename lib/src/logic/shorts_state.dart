@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:youtube_shorts/src/data/type_defs.dart';
 
 sealed class ShortsState {
@@ -19,7 +20,7 @@ class ShortsStateLoading extends ShortsState {
 
 class ShortsStateWithData extends ShortsState {
   // The index and the video controller of the currently playing video.
-  final Map<int, VideoDataCompleter> videos;
+  final Map<int, ShortsData> videos;
 
   int get maxLenght {
     final res = videos.keys.reduce(
@@ -35,8 +36,128 @@ class ShortsStateWithData extends ShortsState {
   });
 }
 
+abstract class ShortsData {
+  const ShortsData();
+}
+
+class ShortsVideoData implements ShortsData {
+  final VideoDataCompleter video;
+  ShortsVideoData({
+    required this.video,
+  });
+}
+
+class ShortsAdsData implements ShortsData {
+  ShortsAdsData();
+}
+
 extension ShortsStateWithDataExtension on ShortsState {
   bool get isLoadingState => this is ShortsStateLoading;
   bool get isErrorState => this is ShortsStateError;
   bool get isDataState => this is ShortsStateWithData;
 }
+
+
+/*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+indexesWithAdd = [2,5,7]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/

@@ -41,7 +41,7 @@ class _ShortsByMultileChannelsIdsState
           children: [
             const SizedBox(height: 8),
             Text(
-              'Type the channel ids of the channels you want\nto play in stories',
+              'Type the channel ids of the channels you want to play in stories',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,

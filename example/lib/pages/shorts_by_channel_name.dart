@@ -35,7 +35,7 @@ class _ShortsByChannelNameState extends State<ShortsByChannelName> {
           children: [
             const SizedBox(height: 8),
             Text(
-              'Type the urls you want\nto play in stories',
+              'Type the urls you want to play in stories',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,

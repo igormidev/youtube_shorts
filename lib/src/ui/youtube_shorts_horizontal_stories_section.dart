@@ -30,6 +30,10 @@ class YoutubeShortsHorizontalStoriesSection extends StatefulWidget {
   /// Notice: If you want to display a widget above the video, use [overlayWidgetBuilder].
   final VideoDataBuilder? videoBuilder;
 
+  /// This is the builder that will create the widget that will be
+  /// displayed when its in an ad index.
+  final AdsDataBuilder? adsWidgetBuilder;
+
   /// This is the widget that will be displayed over the video.
   ///
   /// Notice, the Video widget [videoBuilder] or default [media_kit.Video],
@@ -83,6 +87,7 @@ class YoutubeShortsHorizontalStoriesSection extends StatefulWidget {
   const YoutubeShortsHorizontalStoriesSection({
     super.key,
     required this.controller,
+    this.adsWidgetBuilder,
     this.loadingWidget,
     this.errorWidget,
     this.videoBuilder,
@@ -174,88 +179,104 @@ class _YoutubeShortsHorizontalStoriesSectionState
                       return SizedBox.fromSize();
                     }
 
-                    return VideoCompleterFutureBuilder(
-                      index: index,
-                      controller: widget.controller,
-                      errorWidget: widget.errorWidget,
-                      loadingWidget: widget.loadingWidget,
-                      builder: (context, videoData) {
-                        return ValueListenableBuilder(
-                          valueListenable: selectedIndex,
-                          builder: (context, value, child) {
-                            final bool isSelected = index == value;
+                    final data = widget.controller.getVideoInIndex(index);
+                    if (data is ShortsVideoData) {
+                      return VideoCompleterFutureBuilder(
+                        index: index,
+                        shortsVideoData: data,
+                        errorWidget: widget.errorWidget,
+                        loadingWidget: widget.loadingWidget,
+                        builder: (context, videoData) {
+                          return ValueListenableBuilder(
+                            valueListenable: selectedIndex,
+                            builder: (context, value, child) {
+                              final bool isSelected = index == value;
 
-                            return Transform.scale(
-                              scale: isSelected ? 1 : 0.95,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 8,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: InkWell(
-                                    onTap: () async {
-                                      if (isSelected) {
-                                        _goToShortsPage(index);
-                                      } else {
-                                        _animateToPageWithIndex(index);
-                                      }
-                                    },
-                                    child: IgnorePointer(
-                                      ignoring: true,
-                                      child: switch (widget.notFocusedUiType) {
-                                        PlayerPaused() => media_kit.Video(
-                                            fill: Colors.transparent,
-                                            controller:
-                                                videoData.videoController,
-                                          ),
-                                        WithTumbnailType tumbnail => isSelected
-                                            ? media_kit.Video(
-                                                fill: Colors.transparent,
-                                                controller:
-                                                    videoData.videoController,
-                                              )
-                                            : Builder(
-                                                builder: (context) {
-                                                  final dataTumbnail = videoData
-                                                      .videoData
-                                                      .videoData
-                                                      .thumbnails;
-                                                  return Image.network(
-                                                    switch (tumbnail.quality) {
-                                                      TumbnailQuality
-                                                            .lowResUrl =>
-                                                        dataTumbnail.lowResUrl,
-                                                      TumbnailQuality
-                                                            .mediumResUrl =>
-                                                        dataTumbnail
-                                                            .mediumResUrl,
-                                                      TumbnailQuality
-                                                            .standardResUrl =>
-                                                        dataTumbnail
-                                                            .standardResUrl,
-                                                      TumbnailQuality
-                                                            .highResUrl =>
-                                                        dataTumbnail.highResUrl,
-                                                      TumbnailQuality
-                                                            .maxResUrl =>
-                                                        dataTumbnail.maxResUrl,
-                                                    },
-                                                    fit: BoxFit.cover,
-                                                  );
-                                                },
-                                              ),
+                              return Transform.scale(
+                                scale: isSelected ? 1 : 0.95,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 8,
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: InkWell(
+                                      onTap: () async {
+                                        if (isSelected) {
+                                          _goToShortsPage(index);
+                                        } else {
+                                          _animateToPageWithIndex(index);
+                                        }
                                       },
+                                      child: IgnorePointer(
+                                        ignoring: true,
+                                        child: switch (
+                                            widget.notFocusedUiType) {
+                                          PlayerPaused() => media_kit.Video(
+                                              fill: Colors.transparent,
+                                              controller:
+                                                  videoData.videoController,
+                                            ),
+                                          WithTumbnailType tumbnail =>
+                                            isSelected
+                                                ? media_kit.Video(
+                                                    fill: Colors.transparent,
+                                                    controller: videoData
+                                                        .videoController,
+                                                  )
+                                                : Builder(
+                                                    builder: (context) {
+                                                      final dataTumbnail =
+                                                          videoData
+                                                              .videoData
+                                                              .videoData
+                                                              .thumbnails;
+                                                      return Image.network(
+                                                        switch (
+                                                            tumbnail.quality) {
+                                                          TumbnailQuality
+                                                                .lowResUrl =>
+                                                            dataTumbnail
+                                                                .lowResUrl,
+                                                          TumbnailQuality
+                                                                .mediumResUrl =>
+                                                            dataTumbnail
+                                                                .mediumResUrl,
+                                                          TumbnailQuality
+                                                                .standardResUrl =>
+                                                            dataTumbnail
+                                                                .standardResUrl,
+                                                          TumbnailQuality
+                                                                .highResUrl =>
+                                                            dataTumbnail
+                                                                .highResUrl,
+                                                          TumbnailQuality
+                                                                .maxResUrl =>
+                                                            dataTumbnail
+                                                                .maxResUrl,
+                                                        },
+                                                        fit: BoxFit.cover,
+                                                      );
+                                                    },
+                                                  ),
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
+                              );
+                            },
+                          );
+                        },
+                      );
+                    } else {
+                      return widget.adsWidgetBuilder?.call(
+                            index,
+                            pageController,
+                          ) ??
+                          SizedBox.fromSize();
+                    }
                   },
                 );
               },
