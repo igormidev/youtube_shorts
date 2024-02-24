@@ -1,5 +1,6 @@
 library youtube_shorts;
 
+export 'src/data/shorts_controller_settings.dart';
 export 'src/logic/shorts_controller.dart';
 export 'src/logic/shorts_state.dart';
 export 'src/source/interface_videos_source_controller.dart';

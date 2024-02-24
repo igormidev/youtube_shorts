@@ -1,3 +1,8 @@
+## 4.0.0
+* Added suport for ads between videos
+* Better optimization for channel ids video source
+* Fix [issue 2](https://github.com/igormidev/youtube_shorts/issues/2) and [issue 3](https://github.com/igormidev/youtube_shorts/issues/3)
+
 ## 3.1.0
 * Better resiliance to not valid channels (that don't contain shorts)
 
