@@ -1,3 +1,6 @@
+## 4.0.1
+* Fix: Ads was always appearing instead of video if users scrolls really fast and the videos wasn't loaded yet.
+
 ## 4.0.0
 * Added suport for ads between videos
 * Better optimization for channel ids video source

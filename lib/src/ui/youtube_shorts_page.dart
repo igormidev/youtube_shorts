@@ -162,13 +162,14 @@ class _YoutubeShortsPageState extends State<YoutubeShortsPage> {
                 );
               },
             );
-          } else {
+          } else if (data is ShortsAdsData && widget.adsWidgetBuilder != null) {
             return widget.adsWidgetBuilder?.call(
-                  index,
-                  pageController,
-                ) ??
-                SizedBox.fromSize();
+              index,
+              pageController,
+            );
           }
+
+          return null;
         },
       ),
     );
