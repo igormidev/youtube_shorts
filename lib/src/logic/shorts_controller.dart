@@ -117,7 +117,6 @@ class ShortsController extends ValueNotifier<ShortsState>
   }
 
   int get maxLenght {
-    print('maxLenght: ${_indexToSource.length - 1}');
     return _indexToSource.length;
   }
 
@@ -188,10 +187,6 @@ class ShortsController extends ValueNotifier<ShortsState>
         }
         // Load the videos that are not in state
         for (final item in ordoredList ?? focusedItems) {
-          print(
-            '$currentIndex lets see itemKey; ${item.key} == ${ordoredList?.length}',
-          );
-          print('_indexToSource = $_indexToSource');
           if (item.key.isNegative) continue;
           final int? index;
           if (_indexToSource.containsKey(item.key) == false) {
@@ -199,17 +194,14 @@ class ShortsController extends ValueNotifier<ShortsState>
             if (isAdIndex) {
               _indexToSource[item.key] = null;
               index = null;
-              print('${item.key} isAd: true => ${_indexToSource[item.key]}');
             } else {
               final withoutNullValues = _indexToSource.values.whereType<int>();
               final int sourceLenght = withoutNullValues.length;
               _indexToSource[item.key] = sourceLenght;
               index = sourceLenght;
-              print('${item.key} isAd: false => ${_indexToSource[item.key]}');
             }
           } else {
             index = _indexToSource[item.key];
-            print('${item.key} isAd: null $_indexToSource');
           }
 
           if (index == null) {

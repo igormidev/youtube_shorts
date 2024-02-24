@@ -94,9 +94,6 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
     try {
       info = await getMuxedInfo(video.id.value);
     } catch (error) {
-      print(
-        'FatalFailureException on channelName ${video.id.value}:\n$error\nCheck if the channel exists and if it has videos.',
-      );
       return _fetchNext(index);
     }
     final VideoStats response = (videoData: video, hostedVideoInfo: info);
@@ -116,13 +113,6 @@ class VideosSourceControllerFromMultipleYoutubeChannelsIds
 
         _data[id]!.complete(uploads);
       } catch (error, stackTrace) {
-        if (error is FatalFailureException) {
-          print(
-            'FatalFailureException on channelName $id:\n$error\nCheck if the channel exists and if it has videos.',
-          );
-        } else {
-          print('Error on channelName $id:\n$error\n$stackTrace');
-        }
         final exception = error;
         _data[id]!.completeError(exception, stackTrace);
         rethrow;

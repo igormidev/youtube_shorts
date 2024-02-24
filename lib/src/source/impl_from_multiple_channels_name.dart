@@ -112,7 +112,6 @@ class VideosSourceControllerFromMultipleYoutubeChannelsName
           _data[channelName]!.complete(uploads);
         }).onError((error, stackTrace) {
           if (error is FatalFailureException) {
-            print('FatalFailureException on channelName $channelName:\n$error');
             _data[channelName]!.completeError(error, stackTrace);
             throw error;
           }
