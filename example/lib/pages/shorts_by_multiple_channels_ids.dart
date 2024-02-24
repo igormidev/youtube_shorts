@@ -41,7 +41,7 @@ class _ShortsByMultileChannelsIdsState
           children: [
             const SizedBox(height: 8),
             Text(
-              'Type the channel ids of the channels you want\nto play in stories',
+              'Type the channel ids of the channels you want to play in stories',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -143,6 +143,7 @@ class _ShortsByMultipleChannelIdsDisplayState
   void initState() {
     super.initState();
     controller = ShortsController(
+      indexsWhereWillContainAds: [3, 8],
       youtubeVideoSourceController:
           VideosSourceController.fromMultiYoutubeChannelsIds(
         channelsIds: getMockedChannelIds(),
@@ -154,6 +155,20 @@ class _ShortsByMultipleChannelIdsDisplayState
   Widget build(BuildContext context) {
     return YoutubeShortsPage(
       controller: controller,
+      adsWidgetBuilder: (index, pageController) {
+        return Container(
+          color: Colors.red,
+          child: Center(
+            child: Text(
+              'Ad',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+            ),
+          ),
+        );
+      },
     );
   }
 

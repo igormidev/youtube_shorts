@@ -15,10 +15,12 @@ mixin MixinVideoControlShortcut {
     if (currentState == null) return;
 
     final currentVideoFuture = currentState.videos[currentIndex];
-    if (currentVideoFuture == null) return;
+    if (currentVideoFuture == null || currentVideoFuture is! ShortsVideoData) {
+      return;
+    }
 
     return await _videoControllerLock.synchronized(() async {
-      final currentVideo = await currentVideoFuture.future;
+      final currentVideo = await currentVideoFuture.video.future;
       currentVideo.videoController.player.pause();
     });
   }
@@ -33,10 +35,12 @@ mixin MixinVideoControlShortcut {
     if (currentState == null) return;
 
     final currentVideoFuture = currentState.videos[currentIndex];
-    if (currentVideoFuture == null) return;
+    if (currentVideoFuture == null || currentVideoFuture is! ShortsVideoData) {
+      return;
+    }
 
     return await _videoControllerLock.synchronized(() async {
-      final currentVideo = await currentVideoFuture.future;
+      final currentVideo = await currentVideoFuture.video.future;
       currentVideo.videoController.player.play();
     });
   }
@@ -51,10 +55,12 @@ mixin MixinVideoControlShortcut {
     if (currentState == null) return;
 
     final currentVideoFuture = currentState.videos[currentIndex];
-    if (currentVideoFuture == null) return;
+    if (currentVideoFuture == null || currentVideoFuture is! ShortsVideoData) {
+      return;
+    }
 
     return await _videoControllerLock.synchronized(() async {
-      final currentVideo = await currentVideoFuture.future;
+      final currentVideo = await currentVideoFuture.video.future;
       currentVideo.videoController.player.setVolume(0);
     });
   }
@@ -69,10 +75,10 @@ mixin MixinVideoControlShortcut {
     if (currentState == null) return;
 
     final videoFuture = currentState.videos[index];
-    if (videoFuture == null) return;
+    if (videoFuture == null || videoFuture is! ShortsVideoData) return;
 
     return await _videoControllerLock.synchronized(() async {
-      final video = await videoFuture.future;
+      final video = await videoFuture.video.future;
       video.videoController.player.setVolume(0);
     });
   }
@@ -88,10 +94,12 @@ mixin MixinVideoControlShortcut {
     if (currentState == null) return;
 
     final currentVideoFuture = currentState.videos[currentIndex];
-    if (currentVideoFuture == null) return;
+    if (currentVideoFuture == null || currentVideoFuture is! ShortsVideoData) {
+      return;
+    }
 
     return _videoControllerLock.synchronized(() async {
-      final currentVideo = await currentVideoFuture.future;
+      final currentVideo = await currentVideoFuture.video.future;
       currentVideo.videoController.player.setVolume(volume);
     });
   }
@@ -107,10 +115,12 @@ mixin MixinVideoControlShortcut {
     if (currentState == null) return;
 
     final currentVideoFuture = currentState.videos[index];
-    if (currentVideoFuture == null) return;
+    if (currentVideoFuture == null || currentVideoFuture is! ShortsVideoData) {
+      return;
+    }
 
     return _videoControllerLock.synchronized(() async {
-      final currentVideo = await currentVideoFuture.future;
+      final currentVideo = await currentVideoFuture.video.future;
       currentVideo.videoController.player.setVolume(volume);
     });
   }

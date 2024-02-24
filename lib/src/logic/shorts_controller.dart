@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' hide Video;
@@ -31,6 +32,7 @@ class ShortsController extends ValueNotifier<ShortsState>
   /// * [VideoControllerConfiguration] is the configuration of [VideoController]
   /// of [media_kit](https://pub.dev/packages/media_kit).
   ShortsController({
+    List<int> indexsWhereWillContainAds = const [],
     required VideosSourceController youtubeVideoSourceController,
     ShortsControllerSettings settings = const ShortsControllerSettings(),
     bool videosWillBeInLoop = true,
@@ -42,6 +44,8 @@ class ShortsController extends ValueNotifier<ShortsState>
             defaultVideoControllerConfiguration,
         _youtubeVideoInfoService = youtubeVideoSourceController,
         _lock = Lock(),
+        indexsWhereWillContainAds =
+            UnmodifiableListView(indexsWhereWillContainAds),
         super(const ShortsStateLoading()) {
     notifyCurrentIndex(0);
   }
@@ -91,12 +95,12 @@ class ShortsController extends ValueNotifier<ShortsState>
     if (prevIndex != -1) {
       final previousVideo = getVideoInIndex(prevIndex);
       if (previousVideo != null) {
-        // We will not wait this
-
-        final VideoData video = await previousVideo.future;
-        unawaited(video.videoController.player.pause());
-
-        onPrevVideoPause?.call(video, prevIndex, currentIndex);
+        if (previousVideo is ShortsVideoData) {
+          final VideoData video = await previousVideo.video.future;
+          // We will not wait this
+          unawaited(video.videoController.player.pause());
+          onPrevVideoPause?.call(video, prevIndex, currentIndex);
+        }
       }
     }
 
@@ -104,11 +108,28 @@ class ShortsController extends ValueNotifier<ShortsState>
 
     final currentVideo = getVideoInIndex(currentIndex);
     if (currentVideo != null) {
-      final VideoData video = await currentVideo.future;
-      await video.videoController.player.play();
-      onCurrentVideoPlay?.call(video, prevIndex, currentIndex);
+      if (currentVideo is ShortsVideoData) {
+        final VideoData video = await currentVideo.video.future;
+        await video.videoController.player.play();
+        onCurrentVideoPlay?.call(video, prevIndex, currentIndex);
+      }
     }
   }
+
+  int get maxLenght {
+    return _indexToSource.length;
+  }
+
+  final UnmodifiableListView<int> indexsWhereWillContainAds;
+  final Map<int, int?> _indexToSource = {};
+
+  /*
+    0: 0,
+    1: 1,
+    2: 2,
+    3: null,
+    4: 3,
+  */
 
   /// Will load the previus 3 and next 3 videos.
   Future<void> _preloadVideos() async {
@@ -154,7 +175,7 @@ class ShortsController extends ValueNotifier<ShortsState>
         final targetIndex =
             focusedItems.indexWhere((e) => e.key == currentIndex);
 
-        List<MapEntry<int, VideoDataCompleter?>>? ordoredList;
+        List<MapEntry<int, ShortsData?>>? ordoredList;
 
         if (targetIndex != -1) {
           final prevCurrentIndex = focusedItems.sublist(0, targetIndex);
@@ -167,25 +188,55 @@ class ShortsController extends ValueNotifier<ShortsState>
         // Load the videos that are not in state
         for (final item in ordoredList ?? focusedItems) {
           if (item.key.isNegative) continue;
+          final int? index;
+          if (_indexToSource.containsKey(item.key) == false) {
+            final isAdIndex = indexsWhereWillContainAds.contains(item.key);
+            if (isAdIndex) {
+              _indexToSource[item.key] = null;
+              index = null;
+            } else {
+              final withoutNullValues = _indexToSource.values.whereType<int>();
+              final int sourceLenght = withoutNullValues.length;
+              _indexToSource[item.key] = sourceLenght;
+              index = sourceLenght;
+            }
+          } else {
+            index = _indexToSource[item.key];
+          }
 
-          if (item.value == null) {
-            final VideoStats? video =
-                await _youtubeVideoInfoService.getVideoByIndex(
-              item.key,
-            );
-
-            if (video == null) continue;
-
+          if (index == null) {
             if (currentState == null) {
               currentState = ShortsStateWithData(videos: {
-                item.key: VideoDataCompleter(),
+                item.key: ShortsAdsData(),
               });
 
               value = currentState;
             } else {
               final newState = ShortsStateWithData(videos: {
                 ...currentState.videos,
-                item.key: VideoDataCompleter(),
+                item.key: ShortsAdsData(),
+              });
+              currentState = newState;
+              value = newState;
+            }
+          } else if (item.value == null) {
+            final VideoStats? video =
+                await _youtubeVideoInfoService.getVideoByIndex(
+              index,
+            );
+
+            if (video == null) continue;
+
+            if (currentState == null) {
+              currentState = ShortsStateWithData(videos: {
+                item.key: ShortsVideoData(video: VideoDataCompleter()),
+              });
+
+              value = currentState;
+            } else {
+              final newState = ShortsStateWithData(videos: {
+                ...currentState.videos,
+                item.key: ShortsVideoData(video: VideoDataCompleter()),
               });
               currentState = newState;
               value = newState;
@@ -196,7 +247,7 @@ class ShortsController extends ValueNotifier<ShortsState>
                 Media.normalizeURI(video.hostedVideoInfo.url.toString());
 
             final willPlay =
-                _settings.startWithAutoplay && item.key == currentIndex;
+                _settings.startWithAutoplay && index == currentIndex;
 
             await player.open(Media(hostedVideoUrl), play: willPlay);
 
@@ -207,20 +258,24 @@ class ShortsController extends ValueNotifier<ShortsState>
                   ? PlaylistMode.loop
                   : PlaylistMode.none,
             );
-            currentState.videos[item.key]?.complete((
-              videoController: VideoController(
-                player,
-                configuration: _defaultVideoControllerConfiguration,
-              ),
-              videoData: video,
-            ));
+            final state = currentState.videos[index];
+
+            if (state is ShortsVideoData) {
+              state.video.complete((
+                videoController: VideoController(
+                  player,
+                  configuration: _defaultVideoControllerConfiguration,
+                ),
+                videoData: video,
+              ));
+            }
           }
         }
 
         // Remove from state the videos that are not in focus
         final focusedItemsIndexes = focusedItems.map((e) => e.key);
 
-        final newMap = <int, VideoDataCompleter>{};
+        final newMap = <int, ShortsData>{};
         currentState?.videos.forEach((key, value) async {
           if (focusedItemsIndexes.contains(key)) {
             newMap[key] = value;
@@ -228,10 +283,12 @@ class ShortsController extends ValueNotifier<ShortsState>
             final isKeyAlreadyInDisposeFunction = _disposeList.containsKey(key);
             if (isKeyAlreadyInDisposeFunction == false) {
               _disposeList[key] = () async {
-                final res = await value.future;
-                res.videoController.player.dispose();
-                if (_disposeList.containsKey(key)) {
-                  _disposeList.remove(key);
+                if (value is ShortsVideoData) {
+                  final res = await value.video.future;
+                  res.videoController.player.dispose();
+                  if (_disposeList.containsKey(key)) {
+                    _disposeList.remove(key);
+                  }
                 }
               };
             }
@@ -256,7 +313,7 @@ class ShortsController extends ValueNotifier<ShortsState>
 
   final Map<int, DisposeFunction> _disposeList = {};
 
-  VideoDataCompleter? getVideoInIndex(int index) {
+  ShortsData? getVideoInIndex(int index) {
     ShortsStateWithData? currentState = _getCurrentState();
     if (currentState == null) return null;
 
@@ -273,8 +330,8 @@ class ShortsController extends ValueNotifier<ShortsState>
     }
   }
 
-  MapEntry<int, VideoDataCompleter?> _getMapEntryFromIndex(
-    Map<int, VideoDataCompleter>? videos,
+  MapEntry<int, ShortsData?> _getMapEntryFromIndex(
+    Map<int, ShortsData>? videos,
     int index,
   ) {
     if (index < 0) return MapEntry(index, null);
@@ -293,9 +350,117 @@ class ShortsController extends ValueNotifier<ShortsState>
     final videos = currentState?.videos;
     videos?.forEach((key, value) async {
       try {
-        final controller = await value.future;
-        controller.videoController.player.dispose();
+        if (value is ShortsVideoData) {
+          final controller = await value.video.future;
+          controller.videoController.player.dispose();
+        }
       } finally {}
     });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+1 Role
+quantityAds = 1 (for each 3)
+adsIn: [3]
+memory (0,1,2,3)
+service(0,1,2)
+
+2 Role
+quantityAds = 1 (for each 3)
+adsIn: [3]
+memory (0,1,2,3,4)
+service(0,1,2,3)
+
+3 Role
+quantityAds = 1 (for each 3)
+adsIn: [3]
+memory (0,1,2,3,4,5)
+service(0,1,2,3,4)
+
+4 Role
+quantityAds = 1 (for each 3)
+adsIn: [3]
+memory (0,1,2,3,4,5,6)
+service(0,1,2,3,4,5)
+
+5 Role
+quantityAds = 2 (for each 3)
+adsIn: [3,7]
+memory (1,2,3,4,5,6,7)
+service(0,1,2,3,4,5)
+
+6 Role
+quantityAds = 2 (for each 3)
+adsIn: [3,7]
+memory (2,3,4,5,6,7,8)
+service(0,1,2,3,4,5,6)
+
+7 Role
+quantityAds = 2 (for each 3)
+adsIn: [3,7]
+memory (3,4,5,6,7,8,9)
+service(0,1,2,3,4,5,6,7)
+
+8 Role
+quantityAds = 2 (for each 3)
+adsIn: [3,7]
+memory (4,5,6,7,8,9,10)
+service(0,1,2,3,4,5,6,7,8)
+
+9 Role
+quantityAds = 3 (for each 3)
+adsIn: [3,7,11]
+memory (5,6,7,8,9,10,11)
+service(0,1,2,3,4,5,6,7,8)
+
+10 Role
+quantityAds = 3 (for each 3)
+adsIn: [3,7,11]
+memory (6,7,8,9,10,11,12)
+service(0,1,2,3,4,5,6,7,8,9)
+
+11 Role
+quantityAds = 3 (for each 3)
+adsIn: [3,7,11]
+memory (7,8,9,10,11,12,13)
+service(0,1,2,3,4,5,6,7,8,9,10)
+
+12 Role
+quantityAds = 3 (for each 3)
+adsIn: [3,7,11]
+memory (8,9,10,11,12,13,14)
+service(0,1,2,3,4,5,6,7,8,9,10,11)
+
+13 Role
+quantityAds = 4 (for each 3)
+adsIn: [3,7,11,15]
+memory (9,10,11,12,13,14,15)
+service(0,1,2,3,4,5,6,7,8,9,10,11)
+*/

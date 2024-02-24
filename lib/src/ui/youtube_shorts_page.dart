@@ -22,6 +22,10 @@ class YoutubeShortsPage extends StatefulWidget {
   /// Notice: If you want to display a widget above the video, use [overlayWidgetBuilder].
   final VideoDataBuilder? videoBuilder;
 
+  /// This is the builder that will create the widget that will be
+  /// displayed when its in an ad index.
+  final AdsDataBuilder? adsWidgetBuilder;
+
   /// This is the widget that will be displayed over the video.
   ///
   /// Notice, the Video widget [videoBuilder] or default [media_kit.Video],
@@ -84,6 +88,7 @@ class YoutubeShortsPage extends StatefulWidget {
     super.key,
     required this.controller,
     this.videoBuilder,
+    this.adsWidgetBuilder,
     this.overlayWidgetBuilder,
     this.loadingWidget,
     this.errorWidget,
@@ -133,31 +138,37 @@ class _YoutubeShortsPageState extends State<YoutubeShortsPage> {
         itemBuilder: (context, index) {
           final bool isSelectedIndex = widget.controller.currentIndex == index;
 
-          final ShortsStateWithData shortsState =
-              widget.controller.value as ShortsStateWithData;
-          final int maxLenght = shortsState.maxLenght;
+          final int maxLenght = widget.controller.maxLenght;
           final bool isIndexBellowMaxLenght = index >= maxLenght;
           if (!isSelectedIndex && isIndexBellowMaxLenght) return null;
-
-          return VideoCompleterFutureBuilder(
-            index: index,
-            controller: widget.controller,
-            errorWidget: widget.errorWidget,
-            loadingWidget: widget.loadingWidget,
-            builder: (context, videoData) {
-              return YoutubeShortsVideoPlayer(
-                key: ValueKey(index),
-                willHaveDefaultShortsControllers:
-                    widget.willHaveDefaultShortsControllers,
-                index: index,
-                pageController: pageController,
-                data: videoData,
-                videoBuilder: widget.videoBuilder,
-                overlayWidgetBuilder: widget.overlayWidgetBuilder,
-                initialVolume: widget.initialVolume,
-              );
-            },
-          );
+          final data = widget.controller.getVideoInIndex(index);
+          if (data is ShortsVideoData) {
+            return VideoCompleterFutureBuilder(
+              index: index,
+              shortsVideoData: data,
+              errorWidget: widget.errorWidget,
+              loadingWidget: widget.loadingWidget,
+              builder: (context, videoData) {
+                return YoutubeShortsVideoPlayer(
+                  key: ValueKey(index),
+                  willHaveDefaultShortsControllers:
+                      widget.willHaveDefaultShortsControllers,
+                  index: index,
+                  pageController: pageController,
+                  data: videoData,
+                  videoBuilder: widget.videoBuilder,
+                  overlayWidgetBuilder: widget.overlayWidgetBuilder,
+                  initialVolume: widget.initialVolume,
+                );
+              },
+            );
+          } else {
+            return widget.adsWidgetBuilder?.call(
+                  index,
+                  pageController,
+                ) ??
+                SizedBox.fromSize();
+          }
         },
       ),
     );

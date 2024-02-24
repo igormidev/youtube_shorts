@@ -39,6 +39,11 @@ typedef VideoDataBuilder = Widget Function(
   Widget child,
 );
 
+typedef AdsDataBuilder = Widget Function(
+  int index,
+  PageController pageController,
+);
+
 typedef VideoInfoBuilder = Widget Function(
   int index,
   PageController pageController,
