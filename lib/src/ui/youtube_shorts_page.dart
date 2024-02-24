@@ -150,7 +150,6 @@ class _YoutubeShortsPageState extends State<YoutubeShortsPage> {
               loadingWidget: widget.loadingWidget,
               builder: (context, videoData) {
                 return YoutubeShortsVideoPlayer(
-                  key: ValueKey(index),
                   willHaveDefaultShortsControllers:
                       widget.willHaveDefaultShortsControllers,
                   index: index,

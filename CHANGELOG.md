@@ -1,3 +1,7 @@
+## 4.0.2
+* Audio bug fix
+* Only disposing when user gets out of the screen
+
 ## 4.0.1
 * Fix: Ads was always appearing instead of video if users scrolls really fast and the videos wasn't loaded yet.
 

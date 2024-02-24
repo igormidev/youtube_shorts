@@ -123,20 +123,12 @@ class ShortsController extends ValueNotifier<ShortsState>
   final UnmodifiableListView<int> indexsWhereWillContainAds;
   final Map<int, int?> _indexToSource = {};
 
-  /*
-    0: 0,
-    1: 1,
-    2: 2,
-    3: null,
-    4: 3,
-  */
-
   /// Will load the previus 3 and next 3 videos.
   Future<void> _preloadVideos() async {
     try {
       return _lock.synchronized(() async {
         ShortsStateWithData? currentState = _getCurrentState();
-        final videos = currentState?.videos;
+        final Map<int, ShortsData>? videos = currentState?.videos;
 
         final previus3Ids = [
           _getMapEntryFromIndex(videos, currentIndex - 3),
@@ -219,7 +211,8 @@ class ShortsController extends ValueNotifier<ShortsState>
               currentState = newState;
               value = newState;
             }
-          } else if (item.value == null) {
+          } else if (item.value == null &&
+              (currentState?.videos.containsKey(item.key) ?? false) == false) {
             final VideoStats? video =
                 await _youtubeVideoInfoService.getVideoByIndex(
               index,
@@ -233,7 +226,7 @@ class ShortsController extends ValueNotifier<ShortsState>
               });
 
               value = currentState;
-            } else {
+            } else if (currentState.videos.containsKey(item.key) == false) {
               final newState = ShortsStateWithData(videos: {
                 ...currentState.videos,
                 item.key: ShortsVideoData(video: VideoDataCompleter()),
@@ -242,12 +235,15 @@ class ShortsController extends ValueNotifier<ShortsState>
               value = newState;
             }
 
-            final player = Player();
+            final player = Player(
+                configuration: PlayerConfiguration(
+              vo: video.hostedVideoInfo.url.toString(),
+            ));
             final hostedVideoUrl =
                 Media.normalizeURI(video.hostedVideoInfo.url.toString());
 
             final willPlay =
-                _settings.startWithAutoplay && index == currentIndex;
+                _settings.startWithAutoplay && item.key == currentIndex;
 
             await player.open(Media(hostedVideoUrl), play: willPlay);
 
@@ -258,7 +254,8 @@ class ShortsController extends ValueNotifier<ShortsState>
                   ? PlaylistMode.loop
                   : PlaylistMode.none,
             );
-            final state = currentState.videos[index];
+
+            final ShortsData? state = currentState.videos[item.key];
 
             if (state is ShortsVideoData) {
               state.video.complete((
@@ -271,37 +268,6 @@ class ShortsController extends ValueNotifier<ShortsState>
             }
           }
         }
-
-        // Remove from state the videos that are not in focus
-        final focusedItemsIndexes = focusedItems.map((e) => e.key);
-
-        final newMap = <int, ShortsData>{};
-        currentState?.videos.forEach((key, value) async {
-          if (focusedItemsIndexes.contains(key)) {
-            newMap[key] = value;
-          } else {
-            final isKeyAlreadyInDisposeFunction = _disposeList.containsKey(key);
-            if (isKeyAlreadyInDisposeFunction == false) {
-              _disposeList[key] = () async {
-                if (value is ShortsVideoData) {
-                  final res = await value.video.future;
-                  res.videoController.player.dispose();
-                  if (_disposeList.containsKey(key)) {
-                    _disposeList.remove(key);
-                  }
-                }
-              };
-            }
-          }
-        });
-
-        value = ShortsStateWithData(
-          videos: newMap,
-        );
-
-        _disposeList.forEach((key, value) {
-          value();
-        });
       });
     } catch (error, stackTrace) {
       value = ShortsStateError(
@@ -310,8 +276,6 @@ class ShortsController extends ValueNotifier<ShortsState>
       );
     }
   }
-
-  final Map<int, DisposeFunction> _disposeList = {};
 
   ShortsData? getVideoInIndex(int index) {
     ShortsStateWithData? currentState = _getCurrentState();
